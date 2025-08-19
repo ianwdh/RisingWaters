@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rising Waters - Flood Safety Game</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+        font-family: "Luckiest Guy", cursive;
+      }
+      .background-video {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        z-index: -1;
+      }
+      .content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        text-align: center;
+        color: white;
+        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+        padding-top: 75vh;
+      }
+      .btn-primary {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 4rem;
+        font-family: "Luckiest Guy", cursive;
+        cursor: pointer;
+        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+        transition: all 0.3s ease-in-out;
+        position: relative;
+      } /* Optional hover animation – glow + slight scale */
+      .btn-primary:hover {
+        transform: scale(1.3);
+      }
+      .btn-primary::after {
+        content: "";
+        position: absolute;
+        bottom: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0%;
+        height: 3px;
+        background: #ffffffc5;
+        box-shadow: 0 0 8px #ffffffc5;
+        transition: width 0.4s ease-in-out;
+      }
+      .btn-primary:hover::after {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 🎬 Correct video element -->
+    <video class="background-video" autoplay muted loop playsinline>
+      <source src="../Animations/Homepage.mp4" type="video/mp4" />
+    </video>
+    <div class="content container">
+    <button onclick="startGame()" class="btn btn-primary">PLAY</button>
+  </div>
+
+  <script>
+    function startGame() {
+      window.location.href = "House.html";
+    }
+  </script>
+  </body>
+</html>
