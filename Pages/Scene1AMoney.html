@@ -37,15 +37,16 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: url("../Images/Waves.png") no-repeat center bottom;
+        background: url("../Images/wave.png") no-repeat center bottom;
         background-size: cover;
         z-index: 1;
         animation-fill-mode: forwards;
-        opacity: 1;
       }
+
       .wave.animate {
-        animation: waveRise 2s ease-in-out forwards; /* slowed from 1.5s to 4s */
+        animation: waveRise 1.5s ease-out forwards;
       }
+
       @keyframes waveRise {
         from {
           bottom: -100%;
@@ -112,7 +113,7 @@
   <body>
     <!-- Background video -->
     <video class="background-video" autoplay muted playsinline>
-      <source src="../Animations/Scene1Money.mp4" type="video/mp4" />
+      <source src="../Animations/Scene1AMoney.mp4" type="video/mp4" />
     </video>
     <!-- Wave image -->
     <div class="wave" id="wave"></div>
@@ -133,10 +134,12 @@
       const overlay = document.getElementById("overlay");
       const msg1Element = document.getElementById("message1");
       const msg2Element = document.getElementById("message2");
+
       const message1 =
-        "Never enter a car during a flash flood—it can trap you.";
+        "In emergencies, valuables like money can cost you your life—safety comes first.";
       const message2 =
-        "The water rises too quickly and overwhelms the vehicle.";
+        "While retrieving the cash, the floodwater surges in and sweeps them away.";
+
       function typeWriter(text, element, speed, callback) {
         let i = 0;
         element.textContent = "";
@@ -151,6 +154,7 @@
         }
         typing();
       }
+
       video.addEventListener("ended", () => {
         wave.classList.add("animate");
         setTimeout(() => {
