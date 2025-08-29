@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rising Waters - Flood Safety Game</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+        font-family: "Luckiest Guy", cursive;
+      }
+
+      .background-video {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        z-index: -1;
+      }
+
+      /* Overlay */
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.85);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding-top: 50px;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.8s ease;
+        color: white;
+        text-align: center;
+      }
+
+      .overlay.visible {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      /* Typewriter texts */
+      #safetyMessage {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+      }
+
+      #mainMessage {
+        font-size: 2rem;
+        max-width: 80%;
+        margin-bottom: 40px;
+      }
+
+      /* Icon container */
+      .icon-container {
+        display: grid;
+        grid-template-columns: repeat(2, auto);
+        grid-gap: 20px;
+        justify-items: center;
+        align-items: center;
+      }
+
+      .icon-container img {
+        width: 200px;
+        height: auto;
+        opacity: 0;
+        transform: scale(0.5);
+        transition: opacity 0.4s ease, transform 0.4s ease, box-shadow 0.3s ease;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      .icon-container img.show {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .icon-container img:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Background video -->
+    <video class="background-video" autoplay muted playsinline>
+      <source src="../Animations/Scene2B.mp4" type="video/mp4" />
+    </video>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay">
+      <div id="safetyMessage"></div>
+      <h1 id="mainMessage"></h1>
+      <div class="icon-container">
+        <img src="../Icons/Community.png" alt="Community" />
+        <img src="../Icons/HigherGround.png" alt="Higher Ground" />
+        <img src="../Icons/Friend.png" alt="Friend" />
+        <img src="../Icons/Dog.png" alt="Dog" />
+      </div>
+    </div>
+
+    <script>
+      const video = document.querySelector(".background-video");
+      const overlay = document.getElementById("overlay");
+      const icons = document.querySelectorAll(".icon-container img");
+      const mainMessageEl = document.getElementById("mainMessage");
+
+      const mainText =
+        "You escaped through the window and the floodwater is quickly rising. What do you do?";
+
+      let mainIndex = 0;
+
+      function typeWriterMain() {
+        if (mainIndex < mainText.length) {
+          mainMessageEl.textContent += mainText.charAt(mainIndex);
+          mainIndex++;
+          setTimeout(typeWriterMain, 40);
+        } else {
+          // Reveal icons after text is finished
+          icons.forEach((icon, index) => {
+            setTimeout(() => {
+              icon.classList.add("show");
+            }, index * 400);
+          });
+        }
+      }
+
+      video.addEventListener("ended", () => {
+        overlay.classList.add("visible");
+        setTimeout(typeWriterMain, 1500);
+      });
+
+      // Make icons clickable
+      icons.forEach((icon, index) => {
+        icon.addEventListener("click", () => {
+          const pages = [
+            "Scene2BCommunity.html", // Icon 1
+            "Scene2BHigherGround.html", // Icon 2
+            "Scene2BFriend.html", // Icon 3
+            "Scene2BDog.html", // Icon 4
+          ];
+          window.location.href = pages[index];
+        });
+      });
+    </script>
+  </body>
+</html>

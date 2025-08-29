@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rising Waters - Flood Safety Game</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+        font-family: "Luckiest Guy", cursive;
+      }
+
+      .background-video {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        z-index: -1;
+      }
+
+      /* Full-screen overlay */
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(10, 10, 10, 0.85); /* dark, ominous */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        z-index: 10;
+        transition: opacity 1.5s ease;
+        color: white;
+        text-align: center;
+        text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.9);
+      }
+
+      .overlay.visible {
+        opacity: 1;
+      }
+
+      .overlay h1 {
+        font-size: 2.5rem;
+        margin-bottom: 30px;
+      }
+
+      /* End button larger */
+      .end-btn {
+        position: fixed;
+        bottom: 100px; /* distance from bottom */
+        padding: 14px 28px; /* bigger padding */
+        font-size: 1.6rem; /* bigger text */
+        background: rgb(0, 255, 98);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        cursor: pointer;
+        font-family: "Luckiest Guy", cursive;
+      }
+
+      .end-btn:hover {
+        background: darkgreen;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Background video -->
+    <video class="background-video" autoplay muted playsinline id="bgVideo">
+      <source src="../Animations/SceneBEnding.mp4" type="video/mp4" />
+    </video>
+
+    <!-- Ominous overlay -->
+    <div class="overlay" id="overlay">
+      <h1 id="typewriter"></h1>
+      <button class="end-btn" onclick="window.location.href='Leaderboard.html'">
+        End
+      </button>
+    </div>
+
+    <script>
+      const video = document.getElementById("bgVideo");
+      const overlay = document.getElementById("overlay");
+      const typewriterEl = document.getElementById("typewriter");
+
+      const text = "The rain finally subsides as you are finally safe.";
+      let index = 0;
+
+      function typeWriter() {
+        if (index < text.length) {
+          typewriterEl.textContent += text.charAt(index);
+          index++;
+          setTimeout(typeWriter, 50); // speed of typing
+        }
+      }
+
+      video.addEventListener("ended", () => {
+        overlay.classList.add("visible");
+        setTimeout(typeWriter, 500); // slight delay before typing starts
+      });
+    </script>
+  </body>
+</html>

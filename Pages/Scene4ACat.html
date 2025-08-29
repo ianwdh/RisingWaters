@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rising Waters - Flood Safety Game</title>
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Luckiest Guy', cursive;
+}
+
+.background-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -2;
+}
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.85);
+  z-index: 2;
+  opacity: 0;
+  visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  transition: opacity 0.8s ease;
+}
+
+.overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Top bar: icon + message */
+.top-bar {
+  display: flex;
+  align-items: center;
+  color: white;
+  font-size: 1.2rem;
+  gap: 12px; /* small space between icon and message */
+}
+
+/* Center message */
+.center-message {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem; /* increased from 1.4rem */
+  color: white;
+  text-align: center;
+  max-width: 80%;
+  margin: 0 auto;
+  text-shadow: 2px 2px 4px black;
+  min-height: 3em;
+}
+
+/* Retry button larger */
+.retry-btn {
+  margin: 50px auto;
+  padding: 14px 28px; /* bigger padding */
+  font-size: 1.6rem; /* bigger text */
+  background: crimson;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  cursor: pointer;
+  font-family: 'Luckiest Guy', cursive;
+}
+
+.retry-btn:hover {
+  background: darkred;
+}
+
+</style>
+</head>
+<body>
+
+<!-- Background video -->
+<video class="background-video" autoplay muted playsinline>
+  <source src="../Animations/Scene4ACat.mp4" type="video/mp4">
+</video>
+
+<!-- Wave image -->
+<div class="wave" id="wave"></div>
+
+<!-- Dark overlay -->
+<div class="overlay" id="overlay">
+  <div class="top-bar">
+    <i class="bi bi-exclamation-circle-fill" style="font-size:2rem;"></i>
+    <span id="message1"></span>
+  </div>
+  <div class="center-message" id="message2"></div>
+  <button class="retry-btn" onclick="window.location.href='Scene4A.html'">Retry</button>
+</div>
+
+<script>
+const video = document.querySelector('.background-video');
+const wave = document.getElementById('wave');
+const overlay = document.getElementById('overlay');
+const msg1Element = document.getElementById('message1');
+const msg2Element = document.getElementById('message2');
+
+const message1 = "A moment of hesitation to save a pet during floods can lead to devastation for both of you.";
+const message2 = "You refused to leave without saving your pet cat, the floodwater suddenly rose and swept the rescue boat away.";
+
+function typeWriter(text, element, speed, callback) {
+  let i = 0;
+  element.textContent = "";
+  function typing() {
+    if (i < text.length) {
+      element.textContent += text.charAt(i);
+      i++;
+      setTimeout(typing, speed);
+    } else if (callback) {
+      callback();
+    }
+  }
+  typing();
+}
+
+video.addEventListener('ended', () => {
+  wave.classList.add('animate');
+  setTimeout(() => {
+    overlay.classList.add('show');
+    typeWriter(message1, msg1Element, 30, () => {
+      typeWriter(message2, msg2Element, 30);
+    });
+  }, 1500);
+});
+</script>
+
+</body>
+</html>
