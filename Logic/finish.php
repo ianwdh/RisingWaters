@@ -12,7 +12,7 @@ if (!isset($_SESSION['player_id'])) {
 $host = "localhost";
 $user = "root";
 $pass = "";
-$db   = "rising_waters";
+$db   = "risingwaters";
 
 $conn = new mysqli($host, $user, $pass, $db);
 
@@ -33,7 +33,7 @@ if ($conn->query($sql) === TRUE) {
     // session_destroy();
 
     // Redirect to leaderboard page
-    header("Location: ../Pages/Leaderboard.html");
+    header("Location: ../Logic/leaderboard.php");
     exit();
 } else {
     echo "Error updating record: " . $conn->error;

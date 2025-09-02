@@ -124,7 +124,11 @@
         <span id="message1"></span>
       </div>
       <div class="center-message" id="message2"></div>
-      <button class="retry-btn" onclick="window.location.href='Scene1.html'">
+      <button
+        class="retry-btn"
+        id="retryBtn"
+        onclick="window.location.href='Scene1.html'"
+      >
         Retry
       </button>
     </div>
@@ -134,6 +138,7 @@
       const overlay = document.getElementById("overlay");
       const msg1Element = document.getElementById("message1");
       const msg2Element = document.getElementById("message2");
+      const retryBtn = document.getElementById("retryBtn");
 
       const message1 =
         "In emergencies, valuables like money can cost you your life—safety comes first.";
@@ -163,6 +168,28 @@
             typeWriter(message2, msg2Element, 30);
           });
         }, 1500);
+      });
+
+      retryBtn.addEventListener("click", function () {
+        // Call score.php to subtract 50 points
+        fetch("../Logic/score.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: "action=retry",
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Score update:", data);
+            // Redirect after score is updated
+            window.location.href = "Scene1.html";
+          })
+          .catch((error) => {
+            console.error("Error updating score:", error);
+            // Still redirect even if score update fails
+            window.location.href = "Scene1.html";
+          });
       });
     </script>
   </body>

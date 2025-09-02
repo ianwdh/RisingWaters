@@ -105,8 +105,8 @@
     }
 
     .arrow-button:hover {
-      color: #ffcc00; /* ominous highlight */
-    }
+        color: #73ff00; /* ominous highlight */
+      }
   </style>
 </head>
 <body>
@@ -129,7 +129,7 @@
     <h1 id="mainMessage"></h1>
 
     <!-- Arrow -->
-    <div class="arrow-button" id="arrowBtn" onclick="goNext()">
+    <div class="arrow-button" id="success_arrowBtn" onclick="goNext()">
       <i class="bi bi-arrow-right-circle-fill"></i>
     </div>
   </div>
@@ -140,7 +140,7 @@
     const safetyBar = document.getElementById('safetyBar');
     const safetyMessageEl = document.getElementById('safetyMessage');
     const mainMessageEl = document.getElementById('mainMessage');
-    const arrowBtn = document.getElementById('arrowBtn');
+    const success_arrowBtn = document.getElementById('success_arrowBtn');
 
     // Safety and main messages
     const safetyText = "During floods, waiting for rescue boats is the safest choice—never risk swimming through strong currents.";
@@ -163,7 +163,7 @@
         mainIndex++;
         setTimeout(typeWriterMain, 40);
       } else {
-        arrowBtn.classList.add('show');
+        success_arrowBtn.classList.add('show');
       }
     }
 
@@ -175,6 +175,27 @@
         setTimeout(typeWriterSafety, 200);
         setTimeout(typeWriterMain, 800);
       }, 800);
+    });
+
+    success_arrowBtn.addEventListener('click', function () {
+      // Call score.php to add 50 points
+      fetch("../Logic/score.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: "action=success",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Score update:", data);
+          // Redirect to the next scene after updating score
+          window.location.href = "SceneAEnding.html";
+        })
+        .catch((error) => {
+          console.error("Error updating score:", error);
+          window.location.href = "SceneAEnding.html";
+        });
     });
 
     function goNext() {

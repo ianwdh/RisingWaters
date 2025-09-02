@@ -7,7 +7,7 @@ session_start();
 $host = "localhost";
 $user = "root";
 $pass = "";
-$db   = "rising_waters"; // your database name
+$db   = "risingwaters"; // your database name
 
 $conn = new mysqli($host, $user, $pass, $db);
 

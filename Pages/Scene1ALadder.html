@@ -1,185 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rising Waters - Flood Safety Game</title>
-  <link rel="stylesheet" href="css/bootstrap.min.css" />
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rising Waters - Flood Safety Game</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      font-family: 'Luckiest Guy', cursive;
-    }
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+        font-family: "Luckiest Guy", cursive;
+      }
 
-    .background-video {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      z-index: -1;
-    }
+      .background-video {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        z-index: -1;
+      }
 
-    /* Flashbang overlay */
-    .overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: white;
-      opacity: 0;
-      z-index: 10;
-      transition: opacity 3s ease;
-      color: black;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
+      /* Flashbang overlay */
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: white;
+        opacity: 0;
+        z-index: 10;
+        transition: opacity 3s ease;
+        color: black;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
 
-    .flashbang {
-      animation: flashbangEffect 3s ease forwards;
-    }
+      .flashbang {
+        animation: flashbangEffect 3s ease forwards;
+      }
 
-    @keyframes flashbangEffect {
-      0% { opacity: 0; }
-      20% { opacity: 1; }
-      50% { opacity: 1; }
-      100% { opacity: 1; }
-    }
+      @keyframes flashbangEffect {
+        0% {
+          opacity: 0;
+        }
+        20% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
 
-    /* Safety bar (icon + text) */
-    .safety-bar {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      font-size: 1.5rem;
-      opacity: 0;
-      transition: opacity 1s ease;
-    }
+      /* Safety bar (icon + text) */
+      .safety-bar {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-size: 1.5rem;
+        opacity: 0;
+        transition: opacity 1s ease;
+      }
 
-    .safety-bar.show {
-      opacity: 1;
-    }
+      .safety-bar.show {
+        opacity: 1;
+      }
 
-    .safety-bar i {
-      font-size: 2.5rem;
-      color: black; /* Black icon */
-    }
+      .safety-bar i {
+        font-size: 2.5rem;
+        color: black; /* Black icon */
+      }
 
-    /* Center message */
-    .overlay h1 {
-      font-size: 2.5rem;
-      margin: 0 auto;
-      max-width: 80%;
-      text-align: center;
-    }
+      /* Center message */
+      .overlay h1 {
+        font-size: 2.5rem;
+        margin: 0 auto;
+        max-width: 80%;
+        text-align: center;
+      }
 
-    /* Arrow button */
-    .arrow-button {
-      position: absolute;
-      bottom: 350px;
-      right: 80px;
-      font-size: 4rem;
-      color: black;
-      cursor: pointer;
-      opacity: 0;
-      transition: opacity 1s ease;
-    }
+      /* Arrow button */
+      .arrow-button {
+        position: absolute;
+        bottom: 350px;
+        right: 80px;
+        font-size: 4rem;
+        color: black;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 1s ease;
+      }
 
-    .arrow-button.show {
-      opacity: 1;
-    }
+      .arrow-button.show {
+        opacity: 1;
+      }
 
-    .arrow-button:hover {
-      color: #ffcc00; /* ominous highlight */
-    }
-  </style>
-</head>
-<body>
+      .arrow-button:hover {
+        color: #73ff00; /* ominous highlight */
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Background video -->
+    <video class="background-video" autoplay muted playsinline id="bgVideo">
+      <source src="../Animations/Scene1ALadder.mp4" type="video/mp4" />
+    </video>
 
-  <!-- Background video -->
-  <video class="background-video" autoplay muted playsinline id="bgVideo">
-    <source src="../Animations/Scene1ALadder.mp4" type="video/mp4">
-  </video>
+    <!-- Flashbang overlay -->
+    <div class="overlay" id="overlay">
+      <!-- Safety bar -->
+      <div class="safety-bar" id="safetyBar">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span id="safetyMessage"></span>
+      </div>
 
-  <!-- Flashbang overlay -->
-  <div class="overlay" id="overlay">
+      <!-- Main message in the middle -->
+      <h1 id="mainMessage"></h1>
 
-    <!-- Safety bar -->
-    <div class="safety-bar" id="safetyBar">
-      <i class="bi bi-exclamation-triangle-fill"></i>
-      <span id="safetyMessage"></span>
+      <!-- Arrow -->
+      <div class="arrow-button" id="success_arrowBtn" onclick="goNext()">
+        <i class="bi bi-arrow-right-circle-fill"></i>
+      </div>
     </div>
 
-    <!-- Main message in the middle -->
-    <h1 id="mainMessage"></h1>
+    <script>
+      const video = document.getElementById("bgVideo");
+      const overlay = document.getElementById("overlay");
+      const safetyBar = document.getElementById("safetyBar");
+      const safetyMessageEl = document.getElementById("safetyMessage");
+      const mainMessageEl = document.getElementById("mainMessage");
+      const success_arrowBtn = document.getElementById("success_arrowBtn");
 
-    <!-- Arrow -->
-    <div class="arrow-button" id="arrowBtn" onclick="goNext()">
-      <i class="bi bi-arrow-right-circle-fill"></i>
-    </div>
-  </div>
+      // Safety and main messages
+      const safetyText =
+        "The roof is your highest and safest ground during a flood.";
+      const mainText = "You escape to the roof by climbing the ladder.";
 
-  <script>
-    const video = document.getElementById('bgVideo');
-    const overlay = document.getElementById('overlay');
-    const safetyBar = document.getElementById('safetyBar');
-    const safetyMessageEl = document.getElementById('safetyMessage');
-    const mainMessageEl = document.getElementById('mainMessage');
-    const arrowBtn = document.getElementById('arrowBtn');
+      let safetyIndex = 0;
+      let mainIndex = 0;
 
-    // Safety and main messages
-    const safetyText = "The roof is your highest and safest ground during a flood.";
-    const mainText = "You escape to the roof by climbing the ladder.";
-
-    let safetyIndex = 0;
-    let mainIndex = 0;
-
-    function typeWriterSafety() {
-      if (safetyIndex < safetyText.length) {
-        safetyMessageEl.textContent += safetyText.charAt(safetyIndex);
-        safetyIndex++;
-        setTimeout(typeWriterSafety, 40);
+      function typeWriterSafety() {
+        if (safetyIndex < safetyText.length) {
+          safetyMessageEl.textContent += safetyText.charAt(safetyIndex);
+          safetyIndex++;
+          setTimeout(typeWriterSafety, 40);
+        }
       }
-    }
 
-    function typeWriterMain() {
-      if (mainIndex < mainText.length) {
-        mainMessageEl.textContent += mainText.charAt(mainIndex);
-        mainIndex++;
-        setTimeout(typeWriterMain, 40);
-      } else {
-        arrowBtn.classList.add('show');
+      function typeWriterMain() {
+        if (mainIndex < mainText.length) {
+          mainMessageEl.textContent += mainText.charAt(mainIndex);
+          mainIndex++;
+          setTimeout(typeWriterMain, 40);
+        } else {
+          success_arrowBtn.classList.add("show");
+        }
       }
-    }
 
-    video.addEventListener('ended', () => {
-      overlay.classList.add('flashbang');
-      setTimeout(() => {
-        overlay.style.opacity = 1;
-        safetyBar.classList.add('show');
-        setTimeout(typeWriterSafety, 200);
-        setTimeout(typeWriterMain, 800);
-      }, 800);
-    });
+      video.addEventListener("ended", () => {
+        overlay.classList.add("flashbang");
+        setTimeout(() => {
+          overlay.style.opacity = 1;
+          safetyBar.classList.add("show");
+          setTimeout(typeWriterSafety, 200);
+          setTimeout(typeWriterMain, 800);
+        }, 800);
+      });
 
-    function goNext() {
-      window.location.href = "Scene2A.html";
-    }
-  </script>
-</body>
+      success_arrowBtn.addEventListener("click", function () {
+        // Call score.php to add 50 points
+        fetch("../Logic/score.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: "action=success",
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Score update:", data);
+            // Redirect to the next scene after updating score
+            window.location.href = "Scene2A.html";
+          })
+          .catch((error) => {
+            console.error("Error updating score:", error);
+            window.location.href = "Scene2A.html";
+          });
+      });
+
+      function goNext() {
+        window.location.href = "Scene2A.html";
+      }
+    </script>
+  </body>
 </html>
