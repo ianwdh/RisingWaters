@@ -89,6 +89,32 @@ html, body {
   background: darkred;
 }
 
+/* Wave rising effect */
+.wave {
+  position: fixed;
+  bottom: -100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('../Images/wave.png') no-repeat center bottom;
+  background-size: cover;
+  z-index: 1;
+  animation-fill-mode: forwards;
+}
+
+.wave.animate {
+  animation: waveRise 1.5s ease-out forwards;
+}
+
+@keyframes waveRise {
+  0% {
+    bottom: -100%;
+  }
+  100% {
+    bottom: 0;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -118,8 +144,8 @@ const overlay = document.getElementById('overlay');
 const msg1Element = document.getElementById('message1');
 const msg2Element = document.getElementById('message2');
 
-const message1 = "Trees can be uprooted in rushing water; they are not safe shelters.";
-const message2 = "You jumped to a nearby tree, but the tree was uprooted due to the flood.";
+const message1 = "In floods, prioritize your safety by moving to higher ground. Protecting yourself first ensures you can make better decisions during the emergency.";
+const message2 = "You went to your friend's place but only found this note. The floodwater quickly rose and swallowed you.";
 
 function typeWriter(text, element, speed, callback) {
   let i = 0;
