@@ -99,7 +99,7 @@
   </head>
   <body>
     <!-- Background video -->
-    <video class="background-video" autoplay muted playsinline>
+    <video class="background-video" autoplay playsinline>
       <source src="../Animations/Scene4BHiding.mp4" type="video/mp4" />
     </video>
 
@@ -135,16 +135,28 @@
       const message2 =
         "You start playing hide and seek while everyone boards the rescue helicopter, and they eventually left without you.";
 
+      const typewriterSound = new Audio("../Sound/typewriter.wav");
+      typewriterSound.loop = true;
+
       function typeWriter(text, element, speed, callback) {
         let i = 0;
         element.textContent = "";
+
+        // 🎵 Start typewriter sound
+        typewriterSound.currentTime = 0;
+        typewriterSound.play();
+
         function typing() {
           if (i < text.length) {
             element.textContent += text.charAt(i);
             i++;
             setTimeout(typing, speed);
-          } else if (callback) {
-            callback();
+          } else {
+            // 🎵 Stop typewriter sound when text is done
+            typewriterSound.pause();
+            typewriterSound.currentTime = 0;
+
+            if (callback) callback();
           }
         }
         typing();

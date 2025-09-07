@@ -72,18 +72,30 @@
     </style>
   </head>
   <body>
-    <!-- 🎬 Correct video element -->
-    <video class="background-video" autoplay muted loop playsinline>
+    <video id="bgVideo" class="background-video" loop playsinline>
       <source src="../Animations/Homepage.mp4" type="video/mp4" />
     </video>
-    <div class="content container">
-    <button onclick="startGame()" class="btn btn-primary">PLAY</button>
-  </div>
 
-  <script>
-    function startGame() {
-      window.location.href = "Name.html";
-    }
-  </script>
+    <div class="content container">
+      <button onclick="startGame()" class="btn btn-primary">PLAY</button>
+    </div>
+
+    <script>
+      const video = document.getElementById("bgVideo");
+
+      // Try autoplay muted first
+      video.muted = true;
+      video.play();
+
+      function startGame() {
+        // Unmute and restart when user interacts
+        video.muted = false;
+        video.currentTime = 0;
+        video.play().catch((err) => console.log("Video play blocked:", err));
+
+        // Then redirect if needed
+        window.location.href = "Name.html";
+      }
+    </script>
   </body>
 </html>

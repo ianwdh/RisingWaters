@@ -99,7 +99,7 @@
   </head>
   <body>
     <!-- Background video -->
-    <video class="background-video" autoplay muted playsinline>
+    <video class="background-video" autoplay playsinline>
       <source src="../Animations/Scene4AArguing.mp4" type="video/mp4" />
     </video>
 
@@ -131,20 +131,32 @@
       const retryBtn = document.getElementById("retryBtn");
 
       const message1 =
-        "A moment of hesitation to save a pet during floods can lead to devastation for both of you.";
+        "Always listen to rescuers, they have been trained and are professionals.";
       const message2 =
-        "You refused to leave without saving your pet cat, the floodwater suddenly rose and swept the rescue boat away.";
+        "You argued with the rescuers about priorities, causing delays in the rescue operation.";
+
+      const typewriterSound = new Audio("../Sound/typewriter.wav");
+      typewriterSound.loop = true;
 
       function typeWriter(text, element, speed, callback) {
         let i = 0;
         element.textContent = "";
+
+        // 🎵 Start typewriter sound
+        typewriterSound.currentTime = 0;
+        typewriterSound.play();
+
         function typing() {
           if (i < text.length) {
             element.textContent += text.charAt(i);
             i++;
             setTimeout(typing, speed);
-          } else if (callback) {
-            callback();
+          } else {
+            // 🎵 Stop typewriter sound when text is done
+            typewriterSound.pause();
+            typewriterSound.currentTime = 0;
+
+            if (callback) callback();
           }
         }
         typing();

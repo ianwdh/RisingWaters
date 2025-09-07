@@ -85,14 +85,17 @@
   </head>
   <body>
     <!-- Background video -->
-    <video class="background-video" autoplay muted playsinline id="bgVideo">
+    <video class="background-video" autoplay playsinline id="bgVideo">
       <source src="../Animations/SceneBEnding.mp4" type="video/mp4" />
     </video>
 
     <!-- Ominous overlay -->
     <div class="overlay" id="overlay">
       <h1 id="typewriter"></h1>
-      <button class="end-btn" onclick="window.location.href='../Logic/finish.php'">
+      <button
+        class="end-btn"
+        onclick="window.location.href='../Logic/finish.php'"
+      >
         End
       </button>
     </div>
@@ -105,11 +108,21 @@
       const text = "The rain finally subsides as you are finally safe.";
       let index = 0;
 
+      const typewriterSound = new Audio("../Sound/typewriter.wav");
+      typewriterSound.loop = true;
+
       function typeWriter() {
         if (index < text.length) {
+          typewriterSound.currentTime = 0;
+          typewriterSound.play();
           typewriterEl.textContent += text.charAt(index);
           index++;
-          setTimeout(typeWriter, 50); // speed of typing
+          setTimeout(typeWriter, 50);
+        } else {
+          typewriterSound.pause();
+          typewriterSound.currentTime = 0;
+
+          arrowBtn.classList.add("show");
         }
       }
 

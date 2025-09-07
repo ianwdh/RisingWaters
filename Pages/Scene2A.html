@@ -99,7 +99,7 @@
   </head>
   <body>
     <!-- Background video -->
-    <video class="background-video" autoplay muted playsinline>
+    <video class="background-video" autoplay playsinline>
       <source src="../Animations/Scene2A.mp4" type="video/mp4" />
     </video>
 
@@ -126,16 +126,26 @@
 
       let mainIndex = 0;
 
+      const typewriterSound = new Audio("../Sound/typewriter.wav");
+      typewriterSound.loop = true;
+
       function typeWriterMain() {
         if (mainIndex < mainText.length) {
           mainMessageEl.textContent += mainText.charAt(mainIndex);
           mainIndex++;
           setTimeout(typeWriterMain, 40);
         } else {
-          // Reveal icons after text is finished
+          typewriterSound.pause();
+          typewriterSound.currentTime = 0;
+
+          // 🎵 Reveal icons + play pop sound
           icons.forEach((icon, index) => {
             setTimeout(() => {
               icon.classList.add("show");
+
+              // play pop for each icon
+              const popSound = new Audio("../Sound/icon.mp3");
+              popSound.play();
             }, index * 400);
           });
         }
@@ -143,7 +153,11 @@
 
       video.addEventListener("ended", () => {
         overlay.classList.add("visible");
-        setTimeout(typeWriterMain, 1500);
+
+        setTimeout(() => {
+          typewriterSound.play(); // 🎵 Start typewriter sound
+          typeWriterMain();
+        }, 1500);
       });
 
       // Make icons clickable

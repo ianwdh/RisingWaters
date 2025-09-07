@@ -126,7 +126,7 @@
   </head>
   <body>
     <!-- Background video -->
-    <video class="background-video" autoplay muted playsinline id="bgVideo">
+    <video class="background-video" autoplay playsinline id="bgVideo">
       <source src="../Animations/Scene4BInstructions.mp4" type="video/mp4" />
     </video>
 
@@ -164,22 +164,48 @@
       let safetyIndex = 0;
       let mainIndex = 0;
 
+      const typewriterSound = new Audio("../Sound/typewriter.wav");
+      typewriterSound.loop = true;
+
       function typeWriterSafety() {
-        if (safetyIndex < safetyText.length) {
-          safetyMessageEl.textContent += safetyText.charAt(safetyIndex);
-          safetyIndex++;
-          setTimeout(typeWriterSafety, 40);
+        // Start the sound only once
+        typewriterSound.currentTime = 0;
+        typewriterSound.play();
+
+        function typeChar() {
+          if (safetyIndex < safetyText.length) {
+            safetyMessageEl.textContent += safetyText.charAt(safetyIndex);
+            safetyIndex++;
+            setTimeout(typeChar, 40);
+          } else {
+            // Stop sound when typing is done
+            typewriterSound.pause();
+            typewriterSound.currentTime = 0;
+          }
         }
+
+        typeChar();
       }
 
       function typeWriterMain() {
-        if (mainIndex < mainText.length) {
-          mainMessageEl.textContent += mainText.charAt(mainIndex);
-          mainIndex++;
-          setTimeout(typeWriterMain, 40);
-        } else {
-          success_arrowBtn.classList.add("show");
+        // Start the sound only once
+        typewriterSound.currentTime = 0;
+        typewriterSound.play();
+
+        function typeChar() {
+          if (mainIndex < mainText.length) {
+            mainMessageEl.textContent += mainText.charAt(mainIndex);
+            mainIndex++;
+            setTimeout(typeChar, 40);
+          } else {
+            // Stop sound when typing is done
+            typewriterSound.pause();
+            typewriterSound.currentTime = 0;
+            success_arrowBtn.classList.add("show");
+          }
         }
+
+        typeChar();
       }
 
       video.addEventListener("ended", () => {

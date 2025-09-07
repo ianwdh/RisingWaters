@@ -183,7 +183,7 @@ $conn->close();
 
 <body>
 
-    <video class="background-video" autoplay muted loop playsinline preload="auto" onloadeddata="this.classList.add('loaded')">
+    <video class="background-video" autoplay loop playsinline preload="auto" onloadeddata="this.classList.add('loaded')">
         <source src="../Animations/Homepage.mp4" type="video/mp4" />
     </video>
 
