@@ -10,7 +10,8 @@
       rel="stylesheet"
     />
     <style>
-      html, body {
+      html,
+      body {
         height: 100%;
         margin: 0;
         display: flex;
@@ -46,8 +47,8 @@
       }
 
       .card h3 {
-        margin: 0;                 /* manual spacing: tight top */
-        padding-bottom: 0.5rem;    /* small space under title */
+        margin: 0; /* manual spacing: tight top */
+        padding-bottom: 0.5rem; /* small space under title */
       }
 
       /* Form is its own grid: middle (1fr) + button (auto) */
@@ -59,7 +60,7 @@
 
       /* Middle block gets centered */
       .middle {
-        align-self: center;   /* vertical center within 1fr row */
+        align-self: center; /* vertical center within 1fr row */
         justify-self: center; /* horizontal center */
         width: 100%;
       }
@@ -105,6 +106,35 @@
         background: #28a745;
         transform: scale(1.05);
       }
+
+      /* Custom alert bar */
+      #alertBox {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #dc3545; /* Bootstrap danger red */
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: bold;
+        z-index: 9999;
+        display: none;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translate(-50%, -10px);
+        }
+        to {
+          opacity: 1;
+          transform: translate(-50%, 0);
+        }
+      }
     </style>
   </head>
   <body>
@@ -112,10 +142,19 @@
       <source src="../Animations/Homepage.mp4" type="video/mp4" />
     </video>
 
+    <div id="alertBox">
+      Please enter a valid name (letters and numbers only, no symbols).
+    </div>
+
     <div class="card">
       <h3>Enter Your Name</h3>
 
-      <form action="../Logic/start.php" method="POST" class="form-grid" id="nameForm">
+      <form
+        action="../Logic/start.php"
+        method="POST"
+        class="form-grid"
+        id="nameForm"
+      >
         <div class="middle">
           <label for="name" class="form-label">Player Name:</label>
           <input
@@ -131,5 +170,25 @@
         <button type="submit" class="btn btn-primary">Start Game</button>
       </form>
     </div>
+    <script>
+      document
+        .getElementById("nameForm")
+        .addEventListener("submit", function (e) {
+          const name = document.getElementById("name").value.trim();
+          const validName = /^[a-zA-Z0-9 ]+$/;
+
+          if (name === "" || !validName.test(name)) {
+            e.preventDefault();
+
+            const alertBox = document.getElementById("alertBox");
+            alertBox.style.display = "block";
+
+            // Hide after 3 seconds
+            setTimeout(() => {
+              alertBox.style.display = "none";
+            }, 3000);
+          }
+        });
+    </script>
   </body>
 </html>
