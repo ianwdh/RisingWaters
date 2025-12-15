@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rising Waters - Flood Safety Game</title>
     <link rel="stylesheet" href="css/bootstrap.min.css" />
-    <link rel="stylesheet" href="style.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap"
       rel="stylesheet"
@@ -16,8 +15,8 @@
         margin: 0;
         padding: 0;
         height: 100%;
-        overflow: hidden;
         font-family: "Luckiest Guy", cursive;
+        overflow: hidden;
       }
       .background-video {
         position: fixed;
@@ -33,71 +32,96 @@
         z-index: 1;
         display: flex;
         flex-direction: column;
-        justify-content: flex-start;
         align-items: center;
+        padding-top: 75vh;
         text-align: center;
         color: white;
-        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
-        padding-top: 75vh;
       }
       .btn-primary {
         background: none;
         border: none;
         color: white;
         font-size: 4rem;
-        font-family: "Luckiest Guy", cursive;
         cursor: pointer;
-        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
-        transition: all 0.3s ease-in-out;
-        position: relative;
-      } /* Optional hover animation – glow + slight scale */
+        transition: 0.3s;
+        font-family: "Luckiest Guy", cursive;
+        text-decoration: underline;
+      }
       .btn-primary:hover {
         transform: scale(1.3);
-      }
-      .btn-primary::after {
-        content: "";
-        position: absolute;
-        bottom: -5px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 0%;
-        height: 3px;
-        background: #ffffffc5;
-        box-shadow: 0 0 8px #ffffffc5;
-        transition: width 0.4s ease-in-out;
-      }
-      .btn-primary:hover::after {
-        width: 100%;
       }
     </style>
   </head>
   <body>
-    <video id="bgVideo" class="background-video" loop playsinline>
+    <video id="bgVideo" class="background-video" loop playsinline muted>
       <source src="../Animations/Homepage.mp4" type="video/mp4" />
     </video>
 
-    <div class="content container">
-      <button onclick="startGame()" class="btn btn-primary">PLAY</button>
+    <div class="content">
+      <button id="playBtn" class="btn btn-primary" onclick="startGame()">
+        PLAY
+      </button>
     </div>
 
     <script>
       const video = document.getElementById("bgVideo");
-
-      // Try autoplay muted first
-      video.muted = true;
       video.play();
 
-      function startGame() {
-        // Unmute and restart when user interacts
-        video.muted = false;
-        video.currentTime = 0;
-        video.play().catch((err) => console.log("Video play blocked:", err));
-
-        // Then redirect if needed
-        window.location.href = "Name.html";
+      let PLAYER_NAME = sessionStorage.getItem("player_name");
+      if (!PLAYER_NAME) {
+        alert("No user logged in");
+        window.location.href = "/Pages/Login.html";
       }
+
+      function startGame() {
+        // Redirect to start.php to generate a new singleplayer session
+        window.location.href = "../Logic/start.php";
+      }
+    </script>
+
+    <div id="sidebarPlaceholder"></div>
+
+    <script>
+      fetch("sidebar.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("sidebarPlaceholder").innerHTML = data;
+
+          const sidebar = document.getElementById("sidebar");
+          const toggle = document.getElementById("sidebarToggle");
+          const scoreDisplay = document.getElementById("playerScore");
+
+          // Toggle sidebar & fetch score
+          toggle.addEventListener("click", () => {
+            sidebar.classList.toggle("open");
+            fetchScore(); // fetch score when sidebar opens
+          });
+
+          // Quit button
+          const quitBtn = sidebar.querySelector("#quitGameBtn");
+          quitBtn.addEventListener("click", () => {
+            if (confirm("Are you sure you want to quit?")) {
+              window.location.href = "/Pages/Homepage.html";
+            }
+          });
+
+          // Set username
+          const username = sessionStorage.getItem("player_name") || "Player";
+          document.getElementById("username").textContent = username;
+
+          // Fetch player score
+          function fetchScore() {
+            fetch("../Logic/get_score.php") // adjust path as needed
+              .then((res) => res.json())
+              .then((data) => {
+                scoreDisplay.textContent = data.score;
+              })
+              .catch((err) => console.error("Error fetching score:", err));
+          }
+
+          // Optional: auto-refresh every 5 seconds
+          setInterval(fetchScore, 5000);
+        });
     </script>
   </body>
 </html>
-
-<!-- test -->

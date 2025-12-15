@@ -1,65 +1,77 @@
 <?php
-// score.php
 session_start();
+header('Content-Type: application/json');
 
-// Make sure the player is logged in or has a name in session
-if (!isset($_SESSION['player_name'])) {
+// Check active session
+if (!isset($_SESSION['player_id']) || !isset($_SESSION['session_id'])) {
     http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => 'Player not set in session']);
+    echo json_encode(['status'=>'error','message'=>'No active game session']);
     exit;
 }
 
-$playerName = $_SESSION['player_name'];
+$playerId = $_SESSION['player_id'];
+$sessionId = $_SESSION['session_id'];
 
-// Check the action type from POST or GET
+// Validate action
 if (!isset($_POST['action'])) {
     http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => 'Action not specified']);
+    echo json_encode(['status'=>'error','message'=>'Action not specified']);
     exit;
 }
 
-$action = $_POST['action']; // expected values: 'success' or 'retry'
+$action = $_POST['action'];
+$scoreChange = match($action) {
+    'success' => 100,
+    'retry' => -50,
+    default => null
+};
 
-// Connect to DB
+if ($scoreChange === null) {
+    http_response_code(400);
+    echo json_encode(['status'=>'error','message'=>'Invalid action']);
+    exit;
+}
+
+// DB connection
 $host = "localhost";
 $user = "root";
 $pass = "";
-$db   = "risingwaters";
+$db = "risingwaters";
 
 $conn = new mysqli($host, $user, $pass, $db);
 if ($conn->connect_error) {
     http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'DB connection failed']);
+    echo json_encode(['status'=>'error','message'=>'DB connection failed']);
     exit;
 }
 
-// Determine score change
-$scoreChange = 0;
-if ($action === 'success') {
-    $scoreChange = 100;
-} elseif ($action === 'retry') {
-    $scoreChange = -50;
-} else {
-    http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
+// Ensure game exists
+$checkStmt = $conn->prepare("SELECT * FROM games WHERE player_id=? AND session=? AND sessionstatus='active'");
+$checkStmt->bind_param("is", $playerId, $sessionId);
+$checkStmt->execute();
+$result = $checkStmt->get_result();
+
+if ($result->num_rows === 0) {
+    echo json_encode(['status'=>'error','message'=>'No active game found']);
     exit;
 }
+$checkStmt->close();
 
-// Update the player's score
-$sql = "UPDATE players SET score = score + ? WHERE name = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("is", $scoreChange, $playerName);
+// Update score
+$updateStmt = $conn->prepare("UPDATE games SET score = COALESCE(score,0) + ? WHERE player_id=? AND session=? AND sessionstatus='active'");
+$updateStmt->bind_param("iis", $scoreChange, $playerId, $sessionId);
+$updateStmt->execute();
 
-if ($stmt->execute()) {
-    // Return new score
-    $result = $conn->query("SELECT score FROM players WHERE name = '$playerName'");
-    $row = $result->fetch_assoc();
-    echo json_encode(['status' => 'success', 'new_score' => $row['score']]);
-} else {
-    http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'Failed to update score']);
-}
+// Fetch updated score
+$selectStmt = $conn->prepare("SELECT COALESCE(score,0) AS score FROM games WHERE player_id=? AND session=? AND sessionstatus='active'");
+$selectStmt->bind_param("is", $playerId, $sessionId);
+$selectStmt->execute();
+$res = $selectStmt->get_result();
+$row = $res->fetch_assoc();
 
-$stmt->close();
+echo json_encode(['status'=>'success','new_score'=>(int)$row['score']]);
+
+$updateStmt->close();
+$selectStmt->close();
 $conn->close();
 ?>

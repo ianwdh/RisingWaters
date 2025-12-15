@@ -11,8 +11,7 @@
       rel="stylesheet"
     />
     <style>
-      html,
-      body {
+      html, body {
         margin: 0;
         padding: 0;
         height: 100%;
@@ -30,14 +29,69 @@
         z-index: -1;
       }
 
-      /* Overlay */
+      #countdown {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        font-size: 4rem;
+        color: white;
+        text-shadow: 2px 2px 8px black;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        z-index: 10;
+      }
+
+      .danger-flash {
+        animation: flashRed 0.6s ease-in-out infinite;
+      }
+
+      @keyframes flashRed {
+        0% { color: white; opacity: 1; }
+        50% { color: red; opacity: 0.4; }
+        100% { color: white; opacity: 1; }
+      }
+
+      #deathScreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: black;
+        color: red;
+        font-size: 3rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.6s ease;
+        z-index: 30;
+      }
+
+      .retry-btn {
+        margin-top: 30px;
+        padding: 12px 26px;
+        font-size: 1.6rem;
+        background: red;
+        border: none;
+        border-radius: 10px;
+        color: white;
+        cursor: pointer;
+        font-family: "Luckiest Guy", cursive;
+      }
+
+      .retry-btn:hover { background: green; }
+
       .overlay {
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(0, 0, 0, 0.85);
+        background: rgba(0,0,0,0.85);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -48,18 +102,10 @@
         transition: opacity 0.8s ease;
         color: white;
         text-align: center;
+        z-index: 5;
       }
 
-      .overlay.visible {
-        opacity: 1;
-        visibility: visible;
-      }
-
-      /* Typewriter texts */
-      #safetyMessage {
-        font-size: 1.5rem;
-        margin-bottom: 20px;
-      }
+      .overlay.visible { opacity: 1; visibility: visible; }
 
       #mainMessage {
         font-size: 2rem;
@@ -67,7 +113,6 @@
         margin-bottom: 40px;
       }
 
-      /* Icon container */
       .icon-container {
         display: grid;
         grid-template-columns: repeat(2, auto);
@@ -93,19 +138,23 @@
 
       .icon-container img:hover {
         transform: scale(1.1);
-        box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+        box-shadow: 0 0 20px rgba(255,255,255,0.8);
       }
     </style>
   </head>
   <body>
-    <!-- Background video -->
     <video class="background-video" autoplay playsinline>
       <source src="../Animations/Scene4B.mp4" type="video/mp4" />
     </video>
 
-    <!-- Overlay -->
+    <div id="countdown">10</div>
+
+    <div id="deathScreen">
+      <div>YOU RAN OUT OF TIME!</div>
+      <button class="retry-btn" id="retryDeath">Retry</button>
+    </div>
+
     <div class="overlay" id="overlay">
-      <div id="safetyMessage"></div>
       <h1 id="mainMessage"></h1>
       <div class="icon-container">
         <img src="../Icons/Instructions.png" alt="Instructions" />
@@ -119,58 +168,131 @@
       const video = document.querySelector(".background-video");
       const overlay = document.getElementById("overlay");
       const icons = document.querySelectorAll(".icon-container img");
-      const mainMessageEl = document.getElementById("mainMessage");
+      const mainMessage = document.getElementById("mainMessage");
+      const countdownEl = document.getElementById("countdown");
+      const deathScreen = document.getElementById("deathScreen");
+      const retryDeath = document.getElementById("retryDeath");
 
-      const mainText =
-        "The rescue helicopter arrives and an airlift is conducted. What do you do?";
+      let timeLeft = 10;
+      let timerStarted = false;
+      let timer = null;
 
-      let mainIndex = 0;
+      function startTimer() {
+        if (timerStarted) return;
+        timerStarted = true;
+        countdownEl.style.opacity = "1";
 
+        timer = setInterval(() => {
+          timeLeft--;
+          countdownEl.textContent = timeLeft;
+          if (timeLeft === 3) countdownEl.classList.add("danger-flash");
+          if (timeLeft <= 0) {
+            clearInterval(timer);
+            showDeathScreen();
+          }
+        }, 1000);
+      }
+
+      function showDeathScreen() {
+        deathScreen.style.visibility = "visible";
+        deathScreen.style.opacity = "1";
+
+        fetch("../Logic/score.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: "action=retry",
+        });
+      }
+
+      retryDeath.addEventListener("click", () => {
+        window.location.href = "Scene4B.html";
+      });
+
+      const mainText = "The rescue helicopter arrives and an airlift is conducted. What do you do?";
+      let index = 0;
       const typewriterSound = new Audio("../Sound/typewriter.wav");
       typewriterSound.loop = true;
 
-      function typeWriterMain() {
-        if (mainIndex < mainText.length) {
+      function typeWriter() {
+        if (index < mainText.length) {
           typewriterSound.currentTime = 0;
           typewriterSound.play();
-          
-          mainMessageEl.textContent += mainText.charAt(mainIndex);
-          mainIndex++;
-          setTimeout(typeWriterMain, 40);
+          mainMessage.textContent += mainText.charAt(index);
+          index++;
+          setTimeout(typeWriter, 40);
         } else {
           typewriterSound.pause();
-          typewriterSound.currentTime = 0;
-
-          // 🎵 Reveal icons + play pop sound
-          icons.forEach((icon, index) => {
+          icons.forEach((icon, i) => {
             setTimeout(() => {
               icon.classList.add("show");
-
-              // play pop for each icon
-              const popSound = new Audio("../Sound/icon.mp3");
-              popSound.play();
-            }, index * 400);
+              new Audio("../Sound/icon.mp3").play();
+              if (i === icons.length - 1) setTimeout(startTimer, 400);
+            }, i * 400);
           });
         }
       }
 
       video.addEventListener("ended", () => {
         overlay.classList.add("visible");
-        setTimeout(typeWriterMain, 1500);
+        setTimeout(typeWriter, 1500);
       });
 
-      // Make icons clickable
-      icons.forEach((icon, index) => {
+      const pages = [
+        "Scene4BInstructions.html",
+        "Scene4BElderChildren.html",
+        "Scene4BPushing.html",
+        "Scene4BHiding.html",
+      ];
+
+      icons.forEach((icon, i) => {
         icon.addEventListener("click", () => {
-          const pages = [
-            "Scene4BInstructions.html", // Icon 1
-            "Scene4BElderChildren.html", // Icon 2
-            "Scene4BPushing.html", // Icon 3
-            "Scene4BHiding.html", // Icon 4
-          ];
-          window.location.href = pages[index];
+          window.location.href = pages[i];
         });
       });
     </script>
   </body>
+  <div id="sidebarPlaceholder"></div>
+
+  <script>
+    fetch("sidebar.html")
+      .then((response) => response.text())
+      .then((data) => {
+        document.getElementById("sidebarPlaceholder").innerHTML = data;
+
+        const sidebar = document.getElementById("sidebar");
+        const toggle = document.getElementById("sidebarToggle");
+        const scoreDisplay = document.getElementById("playerScore");
+
+        // Toggle sidebar & fetch score
+        toggle.addEventListener("click", () => {
+          sidebar.classList.toggle("open");
+          fetchScore(); // fetch score when sidebar opens
+        });
+
+        // Quit button
+        const quitBtn = sidebar.querySelector("#quitGameBtn");
+        quitBtn.addEventListener("click", () => {
+          if (confirm("Are you sure you want to quit?")) {
+            window.location.href = "/Pages/Homepage.html";
+          }
+        });
+
+        // Set username
+        const username = sessionStorage.getItem("player_name") || "Player";
+        document.getElementById("username").textContent = username;
+
+        // Fetch player score
+        function fetchScore() {
+          fetch("../Logic/get_score.php") // adjust path as needed
+            .then((res) => res.json())
+            .then((data) => {
+              scoreDisplay.textContent = data.score;
+            })
+            .catch((err) => console.error("Error fetching score:", err));
+        }
+
+        // Optional: auto-refresh every 5 seconds
+        setInterval(fetchScore, 5000);
+      });
+  </script>
 </html>

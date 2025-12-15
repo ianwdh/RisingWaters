@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rising Waters - Flood Safety Game</title>
     <link rel="stylesheet" href="css/bootstrap.min.css" />
-    <link rel="stylesheet" href="style.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap"
       rel="stylesheet"
@@ -30,7 +29,6 @@
         z-index: -1;
       }
 
-      /* Overlay */
       .overlay {
         position: fixed;
         top: 0;
@@ -55,7 +53,73 @@
         visibility: visible;
       }
 
-      /* Typewriter texts */
+      #countdownTimer {
+        position: fixed;
+        top: 20px;
+        right: 30px;
+        font-size: 4rem;
+        color: white;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        text-shadow: 3px 3px 10px black;
+        z-index: 9999;
+      }
+
+      .timer-warning {
+        color: red !important;
+        animation: flash 0.6s infinite;
+      }
+
+      @keyframes flash {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.2;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      #deathScreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: black;
+        color: red;
+        font-size: 4rem;
+        font-weight: bold;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.7s ease;
+        z-index: 999999;
+        text-align: center;
+      }
+
+      #deathScreen button {
+        margin-top: 20px;
+        font-size: 2rem;
+        padding: 10px 30px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        background: red;
+        color: white;
+        font-family: "Luckiest Guy";
+        transition: background 0.3s ease;
+      }
+
+      #deathScreen button:hover {
+        background: green;
+      }
+
       #safetyMessage {
         font-size: 1.5rem;
         margin-bottom: 20px;
@@ -67,7 +131,6 @@
         margin-bottom: 40px;
       }
 
-      /* Icon container */
       .icon-container {
         display: grid;
         grid-template-columns: repeat(2, auto);
@@ -97,13 +160,19 @@
       }
     </style>
   </head>
+
   <body>
-    <!-- Background video -->
     <video class="background-video" autoplay playsinline>
       <source src="../Animations/Scene1.mp4" type="video/mp4" />
     </video>
 
-    <!-- Overlay -->
+    <div id="countdownTimer">10</div>
+
+    <div id="deathScreen">
+      YOU RAN OUT OF TIME!
+      <button id="retryBtn">RETRY</button>
+    </div>
+
     <div class="overlay" id="overlay">
       <div id="safetyMessage"></div>
       <h1 id="mainMessage"></h1>
@@ -120,10 +189,10 @@
       const overlay = document.getElementById("overlay");
       const icons = document.querySelectorAll(".icon-container img");
       const mainMessageEl = document.getElementById("mainMessage");
+      const retryBtn = document.getElementById("retryBtn");
 
       const mainText =
         "The water rises quickly in your kampung home. You have only seconds to act. What do you do?";
-
       let mainIndex = 0;
 
       const typewriterSound = new Audio("../Sound/typewriter.wav");
@@ -138,40 +207,128 @@
           typewriterSound.pause();
           typewriterSound.currentTime = 0;
 
-          // 🎵 Reveal icons + play pop sound
           icons.forEach((icon, index) => {
             setTimeout(() => {
               icon.classList.add("show");
-
-              // play pop for each icon
               const popSound = new Audio("../Sound/icon.mp3");
               popSound.play();
             }, index * 400);
           });
+
+          startCountdown();
         }
       }
 
-      video.addEventListener("ended", () => {
-        overlay.classList.add("visible");
+      function startCountdown() {
+        const timerEl = document.getElementById("countdownTimer");
+        let timeLeft = 10;
 
-        setTimeout(() => {
-          typewriterSound.play(); // 🎵 Start typewriter sound
-          typeWriterMain();
-        }, 1500);
-      });
+        timerEl.style.opacity = 1;
+        timerEl.textContent = timeLeft;
 
-      // Make icons clickable
+        const countdown = setInterval(() => {
+          timeLeft--;
+          timerEl.textContent = timeLeft;
+
+          if (timeLeft <= 3 && timeLeft > 0) {
+            timerEl.classList.add("timer-warning");
+          }
+
+          if (timeLeft <= 0) {
+            clearInterval(countdown);
+            triggerDeathScene();
+          }
+        }, 1000);
+      }
+
+      function triggerDeathScene() {
+        const screen = document.getElementById("deathScreen");
+        screen.style.opacity = 1;
+        screen.style.pointerEvents = "auto";
+      }
+
       icons.forEach((icon, index) => {
         icon.addEventListener("click", () => {
           const pages = [
-            "Scene1ALadder.html", // Icon 1
-            "Scene1ACar.html", // Icon 2
-            "Scene1AEmergencyBag.html", // Icon 3
-            "Scene1AMoney.html", // Icon 4
+            "Scene1ALadder.html",
+            "Scene1ACar.html",
+            "Scene1AEmergencyBag.html",
+            "Scene1AMoney.html",
           ];
           window.location.href = pages[index];
         });
       });
+
+      // Retry button with score deduction
+      retryBtn.addEventListener("click", () => {
+        fetch("../Logic/score.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: "action=retry",
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Score updated:", data);
+            window.location.href = "Scene1.html";
+          })
+          .catch((err) => {
+            console.error("Error updating score:", err);
+            window.location.href = "Scene1.html";
+          });
+      });
+
+      video.addEventListener("ended", () => {
+        overlay.classList.add("visible");
+        setTimeout(() => {
+          typewriterSound.play();
+          typeWriterMain();
+        }, 1500);
+      });
     </script>
   </body>
+
+  <div id="sidebarPlaceholder"></div>
+
+  <script>
+    fetch("sidebar.html")
+      .then((response) => response.text())
+      .then((data) => {
+        document.getElementById("sidebarPlaceholder").innerHTML = data;
+
+        const sidebar = document.getElementById("sidebar");
+        const toggle = document.getElementById("sidebarToggle");
+        const scoreDisplay = document.getElementById("playerScore");
+
+        // Toggle sidebar & fetch score
+        toggle.addEventListener("click", () => {
+          sidebar.classList.toggle("open");
+          fetchScore(); // fetch score when sidebar opens
+        });
+
+        // Quit button
+        const quitBtn = sidebar.querySelector("#quitGameBtn");
+        quitBtn.addEventListener("click", () => {
+          if (confirm("Are you sure you want to quit?")) {
+            window.location.href = "/Pages/Homepage.html";
+          }
+        });
+
+        // Set username
+        const username = sessionStorage.getItem("player_name") || "Player";
+        document.getElementById("username").textContent = username;
+
+        // Fetch player score
+        function fetchScore() {
+          fetch("../Logic/get_score.php") // adjust path as needed
+            .then((res) => res.json())
+            .then((data) => {
+              scoreDisplay.textContent = data.score;
+            })
+            .catch((err) => console.error("Error fetching score:", err));
+        }
+
+        // Optional: auto-refresh every 5 seconds
+        setInterval(fetchScore, 5000);
+      });
+  </script>
 </html>

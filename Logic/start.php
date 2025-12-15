@@ -3,11 +3,11 @@
 
 session_start();
 
-// Database connection (adjust with your own credentials)
+// Database connection
 $host = "localhost";
 $user = "root";
 $pass = "";
-$db   = "risingwaters"; // your database name
+$db   = "risingwaters";
 
 $conn = new mysqli($host, $user, $pass, $db);
 
@@ -16,31 +16,45 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Get player name from form
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = trim($_POST['name']);
+// Make sure the user is logged in
+if (!isset($_SESSION['player_name'])) {
+    die("Error: No user logged in.");
+}
 
-    if (!empty($name)) {
-        // Escape to prevent SQL injection
-        $name = $conn->real_escape_string($name);
+$username = $conn->real_escape_string($_SESSION['player_name']);
 
-        // Insert player into database
-        $sql = "INSERT INTO players (name, status, start_time) VALUES ('$name', 'unfinished', NOW())";
+// Generate a unique 5-digit session number
+function generateUniqueSession($conn) {
+    do {
+        $session = rand(10000, 99999);
+        $check = $conn->query("SELECT id FROM games WHERE session = '$session'");
+    } while ($check->num_rows > 0);
+    return $session;
+}
 
-        if ($conn->query($sql) === TRUE) {
-            // Save player ID in session
-            $_SESSION['player_id'] = $conn->insert_id;
-            $_SESSION['player_name'] = $name;
+// Get player ID
+$sqlUser = "SELECT id FROM users WHERE username = '$username'";
+$resultUser = $conn->query($sqlUser);
 
-            // Redirect to game page (replace with your actual game file)
-            header("Location: ../Pages/House.html");
-            exit();
-        } else {
-            echo "Error: " . $conn->error;
-        }
-    } else {
-        echo "Please enter a valid name.";
-    }
+if ($resultUser->num_rows !== 1) {
+    die("Error: User not found.");
+}
+
+$rowUser = $resultUser->fetch_assoc();
+$player_id = $rowUser['id'];
+$_SESSION['player_id'] = $player_id; // store player_id
+
+// Start singleplayer game session
+$sessionNumber = generateUniqueSession($conn);
+$sqlGame = "INSERT INTO games (player_id, gametype, session, sessionstatus, start_time, end_time)
+            VALUES ('$player_id', 'singleplayer', $sessionNumber, 'active', NOW(), NULL)";
+
+if ($conn->query($sqlGame) === TRUE) {
+    $_SESSION['session_id'] = $sessionNumber;
+    header("Location: ../Pages/House.html"); // first scene
+    exit();
+} else {
+    die("Error creating game session: " . $conn->error);
 }
 
 $conn->close();

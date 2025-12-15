@@ -132,4 +132,48 @@
       });
     </script>
   </body>
+  <div id="sidebarPlaceholder"></div>
+
+  <script>
+    fetch("sidebar.html")
+      .then((response) => response.text())
+      .then((data) => {
+        document.getElementById("sidebarPlaceholder").innerHTML = data;
+
+        const sidebar = document.getElementById("sidebar");
+        const toggle = document.getElementById("sidebarToggle");
+        const scoreDisplay = document.getElementById("playerScore");
+
+        // Toggle sidebar & fetch score
+        toggle.addEventListener("click", () => {
+          sidebar.classList.toggle("open");
+          fetchScore(); // fetch score when sidebar opens
+        });
+
+        // Quit button
+        const quitBtn = sidebar.querySelector("#quitGameBtn");
+        quitBtn.addEventListener("click", () => {
+          if (confirm("Are you sure you want to quit?")) {
+            window.location.href = "/Pages/Homepage.html";
+          }
+        });
+
+        // Set username
+        const username = sessionStorage.getItem("player_name") || "Player";
+        document.getElementById("username").textContent = username;
+
+        // Fetch player score
+        function fetchScore() {
+          fetch("../Logic/get_score.php") // adjust path as needed
+            .then((res) => res.json())
+            .then((data) => {
+              scoreDisplay.textContent = data.score;
+            })
+            .catch((err) => console.error("Error fetching score:", err));
+        }
+
+        // Optional: auto-refresh every 5 seconds
+        setInterval(fetchScore, 5000);
+      });
+  </script>
 </html>

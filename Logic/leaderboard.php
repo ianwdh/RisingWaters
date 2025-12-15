@@ -1,71 +1,114 @@
 <?php
 session_start();
+
+// Make sure user session exists (player name + session id)
+if (!isset($_SESSION['player_name']) || !isset($_SESSION['session_id'])) {
+    die("Session not set for leaderboard");
+}
+
+$playerName = $_SESSION['player_name'];
+$currentSession = $_SESSION['session_id'];
+
+// DB connection
 $host = "localhost";
 $user = "root";
 $pass = "";
 $db   = "risingwaters";
 
-// Database connection
 $conn = new mysqli($host, $user, $pass, $db);
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    die("DB connection failed: " . $conn->connect_error);
 }
 
-// Fetch top 20 finished players
-$sql = "
-    SELECT name, score, TIMESTAMPDIFF(SECOND, start_time, IFNULL(end_time, NOW())) AS timer
-    FROM players
-    WHERE status = 'finished'
-    ORDER BY score DESC, timer ASC
+// -----------------------------
+// GET TOP 20 LEADERBOARD
+// -----------------------------
+$topQuery = "
+    SELECT
+        u.username AS name,
+        g.score,
+        g.session,
+        TIMESTAMPDIFF(SECOND, g.start_time, g.end_time) AS timer
+    FROM games g
+    JOIN users u ON g.player_id = u.id
+    WHERE g.sessionstatus = 'finished'
+    ORDER BY g.score DESC, timer ASC
     LIMIT 20
 ";
-$result = $conn->query($sql);
 
+$topResult = $conn->query($topQuery);
+
+// Store for display
 $leaderboard = [];
 $currentPlayerRank = null;
 $currentPlayerScore = null;
 $currentPlayerTime = null;
+
 $rank = 1;
 
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $row['rank'] = $rank;
-        $leaderboard[] = $row;
+while ($row = $topResult->fetch_assoc()) {
+    $leaderboard[] = [
+        'rank' => $rank,
+        'name' => $row['name'],
+        'score' => $row['score'],
+        'time' => $row['timer']
+    ];
 
-        if (isset($_SESSION['player_name']) && $_SESSION['player_name'] === $row['name']) {
-            $currentPlayerRank = $rank;
-            $currentPlayerScore = $row['score'];
-            $currentPlayerTime = $row['timer'];
-        }
-
-        $rank++;
+    // CORRECT FIX: Match by session ID, not username
+    if ($row['session'] == $currentSession) {
+        $currentPlayerRank = $rank;
+        $currentPlayerScore = $row['score'];
+        $currentPlayerTime = $row['timer'];
     }
+
+    $rank++;
 }
 
-// If player is not already captured in top 20, calculate their rank
-if (isset($_SESSION['player_name']) && $currentPlayerRank === null) {
-    $sql = "SELECT score, TIMESTAMPDIFF(SECOND, start_time, IFNULL(end_time, NOW())) AS timer
-            FROM players
-            WHERE name = '" . $conn->real_escape_string($_SESSION['player_name']) . "'";
-    $res = $conn->query($sql);
-    if ($res && $res->num_rows > 0) {
-        $playerRow = $res->fetch_assoc();
-        $currentPlayerScore = $playerRow['score'];
-        $currentPlayerTime = $playerRow['timer'];
+// ---------------------------------------------------
+// IF PLAYER NOT IN TOP 20, GET THEIR TRUE RANK
+// ---------------------------------------------------
+if ($currentPlayerRank === null) {
 
-        $sqlRank = "
-            SELECT COUNT(*)+1 AS rank
-            FROM players
-            WHERE status='finished'
-              AND (score > " . (int)$playerRow['score'] . " OR (score = " . (int)$playerRow['score'] . " AND TIMESTAMPDIFF(SECOND,start_time,IFNULL(end_time,NOW())) < " . (int)$playerRow['timer'] . "))";
-        $rankRes = $conn->query($sqlRank);
-        $currentPlayerRank = $rankRes->fetch_assoc()['rank'];
+    // Get this exact session’s result
+    $playerQuery = "
+        SELECT
+            u.username AS name,
+            g.score,
+            TIMESTAMPDIFF(SECOND, g.start_time, g.end_time) AS timer
+        FROM games g
+        JOIN users u ON g.player_id = u.id
+        WHERE g.session = $currentSession
+        LIMIT 1
+    ";
+    $playerResult = $conn->query($playerQuery);
+
+    if ($playerResult->num_rows === 1) {
+        $playerData = $playerResult->fetch_assoc();
+        $currentPlayerScore = $playerData['score'];
+        $currentPlayerTime = $playerData['timer'];
     }
+
+    // Count how many players are better to calculate rank
+    $rankQuery = "
+        SELECT COUNT(*) AS betterRank
+        FROM games
+        WHERE sessionstatus = 'finished'
+          AND (score > $currentPlayerScore
+          OR (score = $currentPlayerScore AND TIMESTAMPDIFF(SECOND, start_time, end_time) < $currentPlayerTime))
+    ";
+
+    $rankResult = $conn->query($rankQuery);
+    $rowRank = $rankResult->fetch_assoc();
+
+    $currentPlayerRank = $rowRank['betterRank'] + 1;
 }
 
 $conn->close();
-?>
 
+// ---------------------------------------------
+// OUTPUT FOR YOUR FRONTEND (ADJUST IF NEEDED)
+// ---------------------------------------------
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -75,6 +118,7 @@ $conn->close();
     <title>Rising Waters - Leaderboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+
     <style>
         body {
             font-family: 'Luckiest Guy', cursive;
@@ -84,8 +128,7 @@ $conn->close();
             position: relative;
             overflow: hidden;
             min-height: 100vh;
-            background: #000 url('../Animations/Homepage.mp4') center/cover no-repeat;
-            /* fallback */
+            background: #000;
         }
 
         .background-video {
@@ -96,8 +139,6 @@ $conn->close();
             height: 100vh;
             object-fit: cover;
             z-index: -1;
-            background: #000;
-            /* fallback fill */
             opacity: 0;
             transition: opacity 0.5s ease-in;
         }
@@ -116,6 +157,7 @@ $conn->close();
             margin-bottom: 1rem;
             color: #fff;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            font-size: 3rem;
         }
 
         .leaderboard-scroll {
@@ -131,7 +173,7 @@ $conn->close();
             border-radius: 12px;
             padding: 0.75rem 1rem;
             margin-bottom: 1rem;
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.9);
         }
 
         .player-card div {
@@ -146,7 +188,7 @@ $conn->close();
         }
 
         .field-title {
-            font-size: 0.9rem;
+            font-size: 1rem;
             font-weight: bold;
             color: #007bff;
             margin-bottom: 0.25rem;
@@ -156,10 +198,13 @@ $conn->close();
             margin-top: 1rem;
             border-top: 2px dashed #000;
             padding-top: 0.75rem;
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.9);
         }
 
-        /* Play Again button at bottom-right of page */
+        .highlight {
+            background: rgba(255, 255, 200, 0.9);
+        }
+
         .play-again-btn {
             position: fixed;
             bottom: 20px;
@@ -183,7 +228,8 @@ $conn->close();
 
 <body>
 
-    <video class="background-video" autoplay loop playsinline preload="auto" onloadeddata="this.classList.add('loaded')">
+    <video class="background-video" autoplay loop playsinline preload="auto"
+        onloadeddata="this.classList.add('loaded')">
         <source src="../Animations/Homepage.mp4" type="video/mp4" />
     </video>
 
@@ -191,58 +237,54 @@ $conn->close();
         <h2>Leaderboard</h2>
 
         <div class="leaderboard-scroll">
-            <?php if (!empty($leaderboard)) : ?>
-                <?php foreach ($leaderboard as $player) : ?>
-                    <div class="player-card <?php echo (isset($_SESSION['player_name']) && $_SESSION['player_name'] === $player['name']) ? 'highlight' : ''; ?>">
-                        <div>
-                            <div class="field-title">Rank</div>
-                            <?php echo $player['rank']; ?>
-                        </div>
-                        <div>
-                            <div class="field-title">Name</div>
-                            <?php echo htmlspecialchars($player['name']); ?>
-                        </div>
-                        <div>
-                            <div class="field-title">Score</div>
-                            <?php echo $player['score']; ?>
-                        </div>
-                        <div>
-                            <div class="field-title">Time (s)</div>
-                            <?php echo $player['timer']; ?>
-                        </div>
+            <?php foreach ($leaderboard as $row): ?>
+                <div class="player-card">
+                    <div>
+                        <div class="field-title">Rank</div>
+                        <?= $row['rank'] ?>
                     </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <p style="color:#fff;">No players yet</p>
-            <?php endif; ?>
+
+                    <div>
+                        <div class="field-title">Name</div>
+                        <?= htmlspecialchars($row['name']) ?>
+                    </div>
+
+                    <div>
+                        <div class="field-title">Score</div>
+                        <?= $row['score'] ?>
+                    </div>
+
+                    <div>
+                        <div class="field-title">Time (s)</div>
+                        <?= $row['time'] ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
 
-        <?php if (isset($_SESSION['player_name']) && $currentPlayerRank !== null) : ?>
-            <div class="player-card current-player-rank highlight">
-                <div>
-                    <div class="field-title">Rank</div>
-                    <?php echo $currentPlayerRank; ?>
-                </div>
-                <div>
-                    <div class="field-title">Name</div>
-                    <?php echo htmlspecialchars($_SESSION['player_name']); ?>
-                </div>
-                <div>
-                    <div class="field-title">Score</div>
-                    <?php echo $currentPlayerScore; ?>
-                </div>
-                <div>
-                    <div class="field-title">Time (s)</div>
-                    <?php echo $currentPlayerTime; ?>
-                </div>
+        <div class="player-card current-player-rank highlight">
+            <div>
+                <div class="field-title">Rank</div>
+                <?= $currentPlayerRank ?>
             </div>
-        <?php endif; ?>
-
+            <div>
+                <div class="field-title">Name</div>
+                <?= htmlspecialchars($playerName) ?>
+            </div>
+            <div>
+                <div class="field-title">Score</div>
+                <?= $currentPlayerScore ?>
+            </div>
+            <div>
+                <div class="field-title">Time (s)</div>
+                <?= $currentPlayerTime ?>
+            </div>
+        </div>
     </div>
 
-    <!-- Play Again button outside leaderboard at bottom-right -->
-    <button class="play-again-btn" onclick="window.location.href='../Pages/Homepage.html'">Play Again</button>
+    <button class="play-again-btn" onclick="window.location.href='../Pages/Homepage.html'">
+        Play Again
+    </button>
 
 </body>
-
 </html>
