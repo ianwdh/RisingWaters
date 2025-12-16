@@ -169,7 +169,7 @@
 
     <!-- Death Screen -->
     <div id="deathScreen">
-      <div>YOU RAN OUT OF TIME!</div>
+      <div id="deathMessage">YOU RAN OUT OF TIME!</div>
       <button class="retry-btn" id="retryDeath">Retry</button>
     </div>
 
@@ -192,20 +192,43 @@
 
       const countdownEl = document.getElementById("countdown");
       const deathScreen = document.getElementById("deathScreen");
+      const deathMessage = document.getElementById("deathMessage");
       const retryDeath = document.getElementById("retryDeath");
+
+      // ================= LANGUAGE SYSTEM =================
+      const lang = sessionStorage.getItem("gameLang") || "en";
+
+      const TEXT = {
+        en: {
+          mainText: "You escaped through the window and the floodwater is quickly rising. What do you do?",
+          death: "YOU RAN OUT OF TIME!",
+          retry: "Retry"
+        },
+        ms: {
+          mainText: "Anda berjaya keluar melalui tingkap dan air banjir semakin naik dengan cepat. Apa yang anda lakukan?",
+          death: "MASA ANDA HABIS!",
+          retry: "Cuba Lagi"
+        },
+        zh: {
+          mainText: "你通过窗户逃出，洪水迅速上涨。你会怎么做？",
+          death: "时间到了！",
+          retry: "重试"
+        }
+      };
+
+      const mainText = TEXT[lang].mainText;
+      deathMessage.textContent = TEXT[lang].death;
+      retryDeath.textContent = TEXT[lang].retry;
+      // ====================================================
 
       let timeLeft = 10;
       let timerStarted = false;
       let timer = null;
 
-      /* -----------------------
-            START TIMER
-         ----------------------- */
       function startTimer() {
         if (timerStarted) return;
         timerStarted = true;
-
-        countdownEl.style.opacity = "1"; // show timer
+        countdownEl.style.opacity = "1";
 
         timer = setInterval(() => {
           timeLeft--;
@@ -226,7 +249,6 @@
         deathScreen.style.visibility = "visible";
         deathScreen.style.opacity = "1";
 
-        // Deduct score
         fetch("../Logic/score.php", {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -238,13 +260,7 @@
         window.location.href = "Scene2B.html";
       });
 
-      /* -----------------------
-         TYPEWRITER + ICONS
-         ----------------------- */
-      const mainText =
-        "You escaped through the window and the floodwater is quickly rising. What do you do?";
       let index = 0;
-
       const typewriterSound = new Audio("../Sound/typewriter.wav");
       typewriterSound.loop = true;
 
@@ -256,12 +272,10 @@
           setTimeout(typeWriter, 40);
         } else {
           typewriterSound.pause();
-
           icons.forEach((icon, i) => {
             setTimeout(() => {
               icon.classList.add("show");
               new Audio("../Sound/icon.mp3").play();
-
               if (i === icons.length - 1) {
                 setTimeout(startTimer, 500);
               }
@@ -275,9 +289,6 @@
         setTimeout(typeWriter, 1200);
       });
 
-      /* -----------------------
-           ICON CLICK LINKS
-         ----------------------- */
       const pages = [
         "Scene2BCommunity.html",
         "Scene2BHigherGround.html",
@@ -295,45 +306,94 @@
   <div id="sidebarPlaceholder"></div>
 
   <script>
-    fetch("sidebar.html")
-      .then((response) => response.text())
-      .then((data) => {
-        document.getElementById("sidebarPlaceholder").innerHTML = data;
+      /* =========================
+  TRANSLATIONS & LANGUAGE SYSTEM
+  ========================= */
+      const translations = {
+        en: {
+          playerScoreLabel: "Player Score",
+          quitGame: "Quit Game",
+          quitConfirm: "Are you sure you want to quit?",
+        },
+        ms: {
+          playerScoreLabel: "Skor Pemain",
+          quitGame: "Keluar Permainan",
+          quitConfirm: "Adakah anda pasti mahu keluar?",
+        },
+        zh: {
+          playerScoreLabel: "玩家分数",
+          quitGame: "退出游戏",
+          quitConfirm: "你确定要退出吗？",
+        },
+      };
 
-        const sidebar = document.getElementById("sidebar");
-        const toggle = document.getElementById("sidebarToggle");
-        const scoreDisplay = document.getElementById("playerScore");
+      function getText(key) {
+        const lang = sessionStorage.getItem("gameLang") || "en";
+        return translations[lang][key] || translations.en[key];
+      }
 
-        // Toggle sidebar & fetch score
-        toggle.addEventListener("click", () => {
-          sidebar.classList.toggle("open");
-          fetchScore(); // fetch score when sidebar opens
+      function applyLanguage() {
+        const lang = sessionStorage.getItem("gameLang") || "en";
+
+        // Update sidebar elements
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          el.textContent = translations[lang][key] || translations.en[key];
         });
 
-        // Quit button
-        const quitBtn = sidebar.querySelector("#quitGameBtn");
-        quitBtn.addEventListener("click", () => {
-          if (confirm("Are you sure you want to quit?")) {
-            window.location.href = "/Pages/Homepage.html";
-          }
-        });
-
-        // Set username
-        const username = sessionStorage.getItem("player_name") || "Player";
-        document.getElementById("username").textContent = username;
-
-        // Fetch player score
-        function fetchScore() {
-          fetch("../Logic/get_score.php") // adjust path as needed
-            .then((res) => res.json())
-            .then((data) => {
-              scoreDisplay.textContent = data.score;
-            })
-            .catch((err) => console.error("Error fetching score:", err));
+        // Optional: update other elements on the page if needed
+        // For example, update PLAY button if it exists
+        const playBtn = document.getElementById("playBtn");
+        if (playBtn) {
+          const playText = { en: "PLAY", ms: "MAIN", zh: "开始" };
+          playBtn.textContent = playText[lang];
         }
+      }
 
-        // Optional: auto-refresh every 5 seconds
-        setInterval(fetchScore, 5000);
-      });
-  </script>
+      /* =========================
+  FETCH & APPLY SIDEBAR
+  ========================= */
+      fetch("sidebar.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("sidebarPlaceholder").innerHTML = data;
+
+          // Apply language after sidebar is inserted
+          applyLanguage();
+
+          const sidebar = document.getElementById("sidebar");
+          const toggle = document.getElementById("sidebarToggle");
+          const scoreDisplay = document.getElementById("playerScore");
+          const quitBtn = sidebar.querySelector("#quitGameBtn");
+
+          // Toggle sidebar & fetch score
+          toggle.addEventListener("click", () => {
+            sidebar.classList.toggle("open");
+            fetchScore();
+          });
+
+          // Quit button uses translated confirm
+          quitBtn.addEventListener("click", () => {
+            if (confirm(getText("quitConfirm"))) {
+              window.location.href = "/Pages/Homepage.html";
+            }
+          });
+
+          // Set username
+          const username = sessionStorage.getItem("player_name") || "Player";
+          document.getElementById("username").textContent = username;
+
+          // Fetch player score
+          function fetchScore() {
+            fetch("../Logic/get_score.php")
+              .then((res) => res.json())
+              .then((data) => {
+                scoreDisplay.textContent = data.score;
+              })
+              .catch((err) => console.error("Error fetching score:", err));
+          }
+
+          setInterval(fetchScore, 5000);
+        });
+    </script>
 </html>

@@ -109,7 +109,7 @@
     <!-- Dark overlay -->
     <div class="overlay" id="overlay">
       <div class="top-bar">
-        <i class="bi bi-exclamation-circle-fill" style="font-size: 2rem"></i>
+        <i class="bi bi-ban" style="font-size: 2rem"></i>
         <span id="message1"></span>
       </div>
       <div class="center-message" id="message2"></div>
@@ -130,10 +130,33 @@
       const msg2Element = document.getElementById("message2");
       const retryBtn = document.getElementById("retryBtn");
 
-      const message1 =
-        "Always listen to rescuers, they have been trained and are professionals.";
-      const message2 =
-        "You argued with the rescuers about priorities, causing delays in the rescue operation.";
+      // Multilingual messages
+      const lang = sessionStorage.getItem("gameLang") || "en";
+      const TEXT = {
+        en: {
+          message1:
+            "Always listen to rescuers, they have been trained and are professionals.",
+          message2:
+            "You argued with the rescuers about priorities, causing delays in the rescue operation.",
+          retry: "Retry"
+        },
+        ms: {
+          message1:
+            "Sentiasa dengar penyelamat, mereka telah dilatih dan profesional.",
+          message2:
+            "Anda bertengkar dengan penyelamat mengenai keutamaan, menyebabkan kelewatan operasi menyelamat.",
+          retry: "Cuba Lagi"
+        },
+        zh: {
+          message1: "务必听从救援人员的指示，他们经过专业培训。",
+          message2: "你与救援人员争论优先事项，导致救援延误。",
+          retry: "重试"
+        },
+      };
+
+      const message1 = TEXT[lang].message1;
+      const message2 = TEXT[lang].message2;
+      retryBtn.textContent = TEXT[lang].retry;
 
       const typewriterSound = new Audio("../Sound/typewriter.wav");
       typewriterSound.loop = true;
@@ -142,7 +165,6 @@
         let i = 0;
         element.textContent = "";
 
-        // 🎵 Start typewriter sound
         typewriterSound.currentTime = 0;
         typewriterSound.play();
 
@@ -152,10 +174,8 @@
             i++;
             setTimeout(typing, speed);
           } else {
-            // 🎵 Stop typewriter sound when text is done
             typewriterSound.pause();
             typewriterSound.currentTime = 0;
-
             if (callback) callback();
           }
         }
@@ -184,12 +204,10 @@
           .then((response) => response.json())
           .then((data) => {
             console.log("Score update:", data);
-            // Redirect after score is updated
             window.location.href = "Scene4A.html";
           })
           .catch((error) => {
             console.error("Error updating score:", error);
-            // Still redirect even if score update fails
             window.location.href = "Scene4A.html";
           });
       });
@@ -198,45 +216,94 @@
   <div id="sidebarPlaceholder"></div>
 
   <script>
-    fetch("sidebar.html")
-      .then((response) => response.text())
-      .then((data) => {
-        document.getElementById("sidebarPlaceholder").innerHTML = data;
+      /* =========================
+  TRANSLATIONS & LANGUAGE SYSTEM
+  ========================= */
+      const translations = {
+        en: {
+          playerScoreLabel: "Player Score",
+          quitGame: "Quit Game",
+          quitConfirm: "Are you sure you want to quit?",
+        },
+        ms: {
+          playerScoreLabel: "Skor Pemain",
+          quitGame: "Keluar Permainan",
+          quitConfirm: "Adakah anda pasti mahu keluar?",
+        },
+        zh: {
+          playerScoreLabel: "玩家分数",
+          quitGame: "退出游戏",
+          quitConfirm: "你确定要退出吗？",
+        },
+      };
 
-        const sidebar = document.getElementById("sidebar");
-        const toggle = document.getElementById("sidebarToggle");
-        const scoreDisplay = document.getElementById("playerScore");
+      function getText(key) {
+        const lang = sessionStorage.getItem("gameLang") || "en";
+        return translations[lang][key] || translations.en[key];
+      }
 
-        // Toggle sidebar & fetch score
-        toggle.addEventListener("click", () => {
-          sidebar.classList.toggle("open");
-          fetchScore(); // fetch score when sidebar opens
+      function applyLanguage() {
+        const lang = sessionStorage.getItem("gameLang") || "en";
+
+        // Update sidebar elements
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          el.textContent = translations[lang][key] || translations.en[key];
         });
 
-        // Quit button
-        const quitBtn = sidebar.querySelector("#quitGameBtn");
-        quitBtn.addEventListener("click", () => {
-          if (confirm("Are you sure you want to quit?")) {
-            window.location.href = "/Pages/Homepage.html";
-          }
-        });
-
-        // Set username
-        const username = sessionStorage.getItem("player_name") || "Player";
-        document.getElementById("username").textContent = username;
-
-        // Fetch player score
-        function fetchScore() {
-          fetch("../Logic/get_score.php") // adjust path as needed
-            .then((res) => res.json())
-            .then((data) => {
-              scoreDisplay.textContent = data.score;
-            })
-            .catch((err) => console.error("Error fetching score:", err));
+        // Optional: update other elements on the page if needed
+        // For example, update PLAY button if it exists
+        const playBtn = document.getElementById("playBtn");
+        if (playBtn) {
+          const playText = { en: "PLAY", ms: "MAIN", zh: "开始" };
+          playBtn.textContent = playText[lang];
         }
+      }
 
-        // Optional: auto-refresh every 5 seconds
-        setInterval(fetchScore, 5000);
-      });
-  </script>
+      /* =========================
+  FETCH & APPLY SIDEBAR
+  ========================= */
+      fetch("sidebar.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("sidebarPlaceholder").innerHTML = data;
+
+          // Apply language after sidebar is inserted
+          applyLanguage();
+
+          const sidebar = document.getElementById("sidebar");
+          const toggle = document.getElementById("sidebarToggle");
+          const scoreDisplay = document.getElementById("playerScore");
+          const quitBtn = sidebar.querySelector("#quitGameBtn");
+
+          // Toggle sidebar & fetch score
+          toggle.addEventListener("click", () => {
+            sidebar.classList.toggle("open");
+            fetchScore();
+          });
+
+          // Quit button uses translated confirm
+          quitBtn.addEventListener("click", () => {
+            if (confirm(getText("quitConfirm"))) {
+              window.location.href = "/Pages/Homepage.html";
+            }
+          });
+
+          // Set username
+          const username = sessionStorage.getItem("player_name") || "Player";
+          document.getElementById("username").textContent = username;
+
+          // Fetch player score
+          function fetchScore() {
+            fetch("../Logic/get_score.php")
+              .then((res) => res.json())
+              .then((data) => {
+                scoreDisplay.textContent = data.score;
+              })
+              .catch((err) => console.error("Error fetching score:", err));
+          }
+
+          setInterval(fetchScore, 5000);
+        });
+    </script>
 </html>

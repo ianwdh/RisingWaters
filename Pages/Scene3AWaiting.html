@@ -14,7 +14,6 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
     />
-
     <style>
       html,
       body {
@@ -24,7 +23,6 @@
         overflow: hidden;
         font-family: "Luckiest Guy", cursive;
       }
-
       .background-video {
         position: fixed;
         top: 0;
@@ -34,8 +32,6 @@
         object-fit: cover;
         z-index: -1;
       }
-
-      /* Flashbang overlay */
       .overlay {
         position: fixed;
         top: 0;
@@ -53,11 +49,9 @@
         align-items: center;
         padding: 20px;
       }
-
       .flashbang {
         animation: flashbangEffect 3s ease forwards;
       }
-
       @keyframes flashbangEffect {
         0% {
           opacity: 0;
@@ -72,8 +66,6 @@
           opacity: 1;
         }
       }
-
-      /* Safety bar (icon + text) */
       .safety-bar {
         position: absolute;
         top: 20px;
@@ -85,25 +77,19 @@
         opacity: 0;
         transition: opacity 1s ease;
       }
-
       .safety-bar.show {
         opacity: 1;
       }
-
       .safety-bar i {
         font-size: 2.5rem;
-        color: black; /* Black icon */
+        color: black;
       }
-
-      /* Center message */
       .overlay h1 {
         font-size: 2.5rem;
         margin: 0 auto;
         max-width: 80%;
         text-align: center;
       }
-
-      /* Arrow button */
       .arrow-button {
         position: absolute;
         bottom: 350px;
@@ -114,34 +100,25 @@
         opacity: 0;
         transition: opacity 1s ease;
       }
-
       .arrow-button.show {
         opacity: 1;
       }
-
       .arrow-button:hover {
-        color: #73ff00; /* ominous highlight */
+        color: #73ff00;
       }
     </style>
   </head>
   <body>
-    <!-- Background video -->
     <video class="background-video" autoplay playsinline id="bgVideo">
       <source src="../Animations/Scene3AWaiting.mp4" type="video/mp4" />
     </video>
 
-    <!-- Flashbang overlay -->
     <div class="overlay" id="overlay">
-      <!-- Safety bar -->
       <div class="safety-bar" id="safetyBar">
-        <i class="bi bi-exclamation-triangle-fill"></i>
+        <i class="bi bi-lightbulb-fill"></i>
         <span id="safetyMessage"></span>
       </div>
-
-      <!-- Main message in the middle -->
       <h1 id="mainMessage"></h1>
-
-      <!-- Arrow -->
       <div class="arrow-button" id="success_arrowBtn" onclick="goNext()">
         <i class="bi bi-arrow-right-circle-fill"></i>
       </div>
@@ -155,57 +132,51 @@
       const mainMessageEl = document.getElementById("mainMessage");
       const success_arrowBtn = document.getElementById("success_arrowBtn");
 
-      // Safety and main messages
-      const safetyText =
-        "Impatience is the flood's weapon—one wrong move, and it swallows you.";
-      const mainText =
-        "You wait calmly for the rescuers while waving your arms.";
+      // Determine language from sessionStorage
+      const lang = sessionStorage.getItem("gameLang") || "en";
+
+      const TEXT = {
+        en: {
+          safety:
+            "Impatience is the flood's weapon—one wrong move, and it swallows you.",
+          main: "You wait calmly for the rescuers while waving your arms.",
+        },
+        ms: {
+          safety:
+            "Sikap tidak sabar adalah senjata banjir—satu langkah salah, ia menelan anda.",
+          main: "Anda menunggu dengan tenang untuk penyelamat sambil melambai tangan.",
+        },
+        zh: {
+          safety: "急躁是洪水的武器——一个错误的动作就会被吞没。",
+          main: "你平静地等待救援人员，同时挥动双手。",
+        },
+      };
+
+      const safetyText = TEXT[lang].safety;
+      const mainText = TEXT[lang].main;
 
       let safetyIndex = 0;
       let mainIndex = 0;
-
       const typewriterSound = new Audio("../Sound/typewriter.wav");
       typewriterSound.loop = true;
 
-      function typeWriterSafety() {
-        // Start the sound only once
+      function typeWriter(text, element, speed, callback) {
+        let i = 0;
+        element.textContent = "";
         typewriterSound.currentTime = 0;
         typewriterSound.play();
-
-        function typeChar() {
-          if (safetyIndex < safetyText.length) {
-            safetyMessageEl.textContent += safetyText.charAt(safetyIndex);
-            safetyIndex++;
-            setTimeout(typeChar, 40);
+        function typing() {
+          if (i < text.length) {
+            element.textContent += text.charAt(i);
+            i++;
+            setTimeout(typing, speed);
           } else {
-            // Stop sound when typing is done
             typewriterSound.pause();
             typewriterSound.currentTime = 0;
+            if (callback) callback();
           }
         }
-
-        typeChar();
-      }
-
-      function typeWriterMain() {
-        // Start the sound only once
-        typewriterSound.currentTime = 0;
-        typewriterSound.play();
-
-        function typeChar() {
-          if (mainIndex < mainText.length) {
-            mainMessageEl.textContent += mainText.charAt(mainIndex);
-            mainIndex++;
-            setTimeout(typeChar, 40);
-          } else {
-            // Stop sound when typing is done
-            typewriterSound.pause();
-            typewriterSound.currentTime = 0;
-            success_arrowBtn.classList.add("show");
-          }
-        }
-
-        typeChar();
+        typing();
       }
 
       video.addEventListener("ended", () => {
@@ -213,79 +184,123 @@
         setTimeout(() => {
           overlay.style.opacity = 1;
           safetyBar.classList.add("show");
-          setTimeout(typeWriterSafety, 200);
-          setTimeout(typeWriterMain, 800);
+          setTimeout(() => typeWriter(safetyText, safetyMessageEl, 40), 200);
+          setTimeout(
+            () =>
+              typeWriter(mainText, mainMessageEl, 40, () => {
+                success_arrowBtn.classList.add("show");
+              }),
+            800
+          );
         }, 800);
       });
 
       success_arrowBtn.addEventListener("click", function () {
-        // Call score.php to add 50 points
         fetch("../Logic/score.php", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: "action=success",
         })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log("Score update:", data);
-            // Redirect to the next scene after updating score
-            window.location.href = "Scene4A.html";
-          })
-          .catch((error) => {
-            console.error("Error updating score:", error);
-            window.location.href = "Scene4A.html";
-          });
+          .then(() => (window.location.href = "Scene4A.html"))
+          .catch(() => (window.location.href = "Scene4A.html"));
       });
 
       function goNext() {
         window.location.href = "Scene4A.html";
       }
     </script>
-  </body>
-  <div id="sidebarPlaceholder"></div>
 
-  <script>
-    fetch("sidebar.html")
-      .then((response) => response.text())
-      .then((data) => {
-        document.getElementById("sidebarPlaceholder").innerHTML = data;
+    <div id="sidebarPlaceholder"></div>
+    <script>
+      /* =========================
+  TRANSLATIONS & LANGUAGE SYSTEM
+  ========================= */
+      const translations = {
+        en: {
+          playerScoreLabel: "Player Score",
+          quitGame: "Quit Game",
+          quitConfirm: "Are you sure you want to quit?",
+        },
+        ms: {
+          playerScoreLabel: "Skor Pemain",
+          quitGame: "Keluar Permainan",
+          quitConfirm: "Adakah anda pasti mahu keluar?",
+        },
+        zh: {
+          playerScoreLabel: "玩家分数",
+          quitGame: "退出游戏",
+          quitConfirm: "你确定要退出吗？",
+        },
+      };
 
-        const sidebar = document.getElementById("sidebar");
-        const toggle = document.getElementById("sidebarToggle");
-        const scoreDisplay = document.getElementById("playerScore");
+      function getText(key) {
+        const lang = sessionStorage.getItem("gameLang") || "en";
+        return translations[lang][key] || translations.en[key];
+      }
 
-        // Toggle sidebar & fetch score
-        toggle.addEventListener("click", () => {
-          sidebar.classList.toggle("open");
-          fetchScore(); // fetch score when sidebar opens
+      function applyLanguage() {
+        const lang = sessionStorage.getItem("gameLang") || "en";
+
+        // Update sidebar elements
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          el.textContent = translations[lang][key] || translations.en[key];
         });
 
-        // Quit button
-        const quitBtn = sidebar.querySelector("#quitGameBtn");
-        quitBtn.addEventListener("click", () => {
-          if (confirm("Are you sure you want to quit?")) {
-            window.location.href = "/Pages/Homepage.html";
-          }
-        });
-
-        // Set username
-        const username = sessionStorage.getItem("player_name") || "Player";
-        document.getElementById("username").textContent = username;
-
-        // Fetch player score
-        function fetchScore() {
-          fetch("../Logic/get_score.php") // adjust path as needed
-            .then((res) => res.json())
-            .then((data) => {
-              scoreDisplay.textContent = data.score;
-            })
-            .catch((err) => console.error("Error fetching score:", err));
+        // Optional: update other elements on the page if needed
+        // For example, update PLAY button if it exists
+        const playBtn = document.getElementById("playBtn");
+        if (playBtn) {
+          const playText = { en: "PLAY", ms: "MAIN", zh: "开始" };
+          playBtn.textContent = playText[lang];
         }
+      }
 
-        // Optional: auto-refresh every 5 seconds
-        setInterval(fetchScore, 5000);
-      });
-  </script>
+      /* =========================
+  FETCH & APPLY SIDEBAR
+  ========================= */
+      fetch("sidebar.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("sidebarPlaceholder").innerHTML = data;
+
+          // Apply language after sidebar is inserted
+          applyLanguage();
+
+          const sidebar = document.getElementById("sidebar");
+          const toggle = document.getElementById("sidebarToggle");
+          const scoreDisplay = document.getElementById("playerScore");
+          const quitBtn = sidebar.querySelector("#quitGameBtn");
+
+          // Toggle sidebar & fetch score
+          toggle.addEventListener("click", () => {
+            sidebar.classList.toggle("open");
+            fetchScore();
+          });
+
+          // Quit button uses translated confirm
+          quitBtn.addEventListener("click", () => {
+            if (confirm(getText("quitConfirm"))) {
+              window.location.href = "/Pages/Homepage.html";
+            }
+          });
+
+          // Set username
+          const username = sessionStorage.getItem("player_name") || "Player";
+          document.getElementById("username").textContent = username;
+
+          // Fetch player score
+          function fetchScore() {
+            fetch("../Logic/get_score.php")
+              .then((res) => res.json())
+              .then((data) => {
+                scoreDisplay.textContent = data.score;
+              })
+              .catch((err) => console.error("Error fetching score:", err));
+          }
+
+          setInterval(fetchScore, 5000);
+        });
+    </script>
+  </body>
 </html>

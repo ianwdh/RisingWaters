@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rising Waters - Flood Safety Game</title>
+
     <link rel="stylesheet" href="css/bootstrap.min.css" />
     <link rel="stylesheet" href="style.css" />
     <link
@@ -35,7 +36,6 @@
         z-index: -1;
       }
 
-      /* Flashbang overlay */
       .overlay {
         position: fixed;
         top: 0;
@@ -73,7 +73,6 @@
         }
       }
 
-      /* Safety bar (icon + text) */
       .safety-bar {
         position: absolute;
         top: 20px;
@@ -92,10 +91,9 @@
 
       .safety-bar i {
         font-size: 2.5rem;
-        color: black; /* Black icon */
+        color: black;
       }
 
-      /* Center message */
       .overlay h1 {
         font-size: 2.5rem;
         margin: 0 auto;
@@ -103,7 +101,6 @@
         text-align: center;
       }
 
-      /* Arrow button */
       .arrow-button {
         position: absolute;
         bottom: 350px;
@@ -120,29 +117,27 @@
       }
 
       .arrow-button:hover {
-        color: #73ff00; /* ominous highlight */
+        color: #73ff00;
       }
     </style>
   </head>
+
   <body>
     <!-- Background video -->
     <video class="background-video" autoplay playsinline id="bgVideo">
       <source src="../Animations/Scene4BInstructions.mp4" type="video/mp4" />
     </video>
 
-    <!-- Flashbang overlay -->
+    <!-- Overlay -->
     <div class="overlay" id="overlay">
-      <!-- Safety bar -->
       <div class="safety-bar" id="safetyBar">
-        <i class="bi bi-exclamation-triangle-fill"></i>
+        <i class="bi bi-lightbulb-fill"></i>
         <span id="safetyMessage"></span>
       </div>
 
-      <!-- Main message in the middle -->
       <h1 id="mainMessage"></h1>
 
-      <!-- Arrow -->
-      <div class="arrow-button" id="success_arrowBtn" onclick="goNext()">
+      <div class="arrow-button" id="success_arrowBtn">
         <i class="bi bi-arrow-right-circle-fill"></i>
       </div>
     </div>
@@ -155,11 +150,28 @@
       const mainMessageEl = document.getElementById("mainMessage");
       const success_arrowBtn = document.getElementById("success_arrowBtn");
 
-      // Safety and main messages
-      const safetyText =
-        "In emergencies, staying patient and trusting rescuers is often the safest choice.";
-      const mainText =
-        "You follow the instructions and safely board the rescue helicopter.";
+      /* ================= LANGUAGE SETUP ================= */
+      const lang = sessionStorage.getItem("language") || "English";
+
+      const textContent = {
+        English: {
+          safety:
+            "In emergencies, staying patient and trusting rescuers is often the safest choice.",
+          main: "You follow the instructions and safely board the rescue helicopter.",
+        },
+        Malay: {
+          safety:
+            "Dalam situasi kecemasan, bersabar dan mempercayai penyelamat adalah pilihan paling selamat.",
+          main: "Anda mengikuti arahan dan berjaya menaiki helikopter penyelamat dengan selamat.",
+        },
+        Chinese: {
+          safety: "在紧急情况下，保持耐心并信任救援人员通常是最安全的选择。",
+          main: "你按照指示行动，安全地登上了救援直升机。",
+        },
+      };
+
+      const safetyText = textContent[lang].safety;
+      const mainText = textContent[lang].main;
 
       let safetyIndex = 0;
       let mainIndex = 0;
@@ -168,43 +180,35 @@
       typewriterSound.loop = true;
 
       function typeWriterSafety() {
-        // Start the sound only once
         typewriterSound.currentTime = 0;
         typewriterSound.play();
 
         function typeChar() {
           if (safetyIndex < safetyText.length) {
-            safetyMessageEl.textContent += safetyText.charAt(safetyIndex);
-            safetyIndex++;
+            safetyMessageEl.textContent += safetyText.charAt(safetyIndex++);
             setTimeout(typeChar, 40);
           } else {
-            // Stop sound when typing is done
             typewriterSound.pause();
             typewriterSound.currentTime = 0;
           }
         }
-
         typeChar();
       }
 
       function typeWriterMain() {
-        // Start the sound only once
         typewriterSound.currentTime = 0;
         typewriterSound.play();
 
         function typeChar() {
           if (mainIndex < mainText.length) {
-            mainMessageEl.textContent += mainText.charAt(mainIndex);
-            mainIndex++;
+            mainMessageEl.textContent += mainText.charAt(mainIndex++);
             setTimeout(typeChar, 40);
           } else {
-            // Stop sound when typing is done
             typewriterSound.pause();
             typewriterSound.currentTime = 0;
             success_arrowBtn.classList.add("show");
           }
         }
-
         typeChar();
       }
 
@@ -218,74 +222,110 @@
         }, 800);
       });
 
-      success_arrowBtn.addEventListener("click", function () {
-        // Call score.php to add 50 points
+      success_arrowBtn.addEventListener("click", () => {
         fetch("../Logic/score.php", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: "action=success",
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log("Score update:", data);
-            // Redirect to the next scene after updating score
-            window.location.href = "SceneBEnding.html";
-          })
-          .catch((error) => {
-            console.error("Error updating score:", error);
-            window.location.href = "SceneBEnding.html";
-          });
+        }).finally(() => {
+          window.location.href = "SceneBEnding.html";
+        });
       });
-
-      function goNext() {
-        window.location.href = "SceneBEnding.html";
-      }
     </script>
   </body>
+
+  <!-- Sidebar -->
   <div id="sidebarPlaceholder"></div>
 
   <script>
-    fetch("sidebar.html")
-      .then((response) => response.text())
-      .then((data) => {
-        document.getElementById("sidebarPlaceholder").innerHTML = data;
+      /* =========================
+  TRANSLATIONS & LANGUAGE SYSTEM
+  ========================= */
+      const translations = {
+        en: {
+          playerScoreLabel: "Player Score",
+          quitGame: "Quit Game",
+          quitConfirm: "Are you sure you want to quit?",
+        },
+        ms: {
+          playerScoreLabel: "Skor Pemain",
+          quitGame: "Keluar Permainan",
+          quitConfirm: "Adakah anda pasti mahu keluar?",
+        },
+        zh: {
+          playerScoreLabel: "玩家分数",
+          quitGame: "退出游戏",
+          quitConfirm: "你确定要退出吗？",
+        },
+      };
 
-        const sidebar = document.getElementById("sidebar");
-        const toggle = document.getElementById("sidebarToggle");
-        const scoreDisplay = document.getElementById("playerScore");
+      function getText(key) {
+        const lang = sessionStorage.getItem("gameLang") || "en";
+        return translations[lang][key] || translations.en[key];
+      }
 
-        // Toggle sidebar & fetch score
-        toggle.addEventListener("click", () => {
-          sidebar.classList.toggle("open");
-          fetchScore(); // fetch score when sidebar opens
+      function applyLanguage() {
+        const lang = sessionStorage.getItem("gameLang") || "en";
+
+        // Update sidebar elements
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          el.textContent = translations[lang][key] || translations.en[key];
         });
 
-        // Quit button
-        const quitBtn = sidebar.querySelector("#quitGameBtn");
-        quitBtn.addEventListener("click", () => {
-          if (confirm("Are you sure you want to quit?")) {
-            window.location.href = "/Pages/Homepage.html";
-          }
-        });
-
-        // Set username
-        const username = sessionStorage.getItem("player_name") || "Player";
-        document.getElementById("username").textContent = username;
-
-        // Fetch player score
-        function fetchScore() {
-          fetch("../Logic/get_score.php") // adjust path as needed
-            .then((res) => res.json())
-            .then((data) => {
-              scoreDisplay.textContent = data.score;
-            })
-            .catch((err) => console.error("Error fetching score:", err));
+        // Optional: update other elements on the page if needed
+        // For example, update PLAY button if it exists
+        const playBtn = document.getElementById("playBtn");
+        if (playBtn) {
+          const playText = { en: "PLAY", ms: "MAIN", zh: "开始" };
+          playBtn.textContent = playText[lang];
         }
+      }
 
-        // Optional: auto-refresh every 5 seconds
-        setInterval(fetchScore, 5000);
-      });
-  </script>
+      /* =========================
+  FETCH & APPLY SIDEBAR
+  ========================= */
+      fetch("sidebar.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("sidebarPlaceholder").innerHTML = data;
+
+          // Apply language after sidebar is inserted
+          applyLanguage();
+
+          const sidebar = document.getElementById("sidebar");
+          const toggle = document.getElementById("sidebarToggle");
+          const scoreDisplay = document.getElementById("playerScore");
+          const quitBtn = sidebar.querySelector("#quitGameBtn");
+
+          // Toggle sidebar & fetch score
+          toggle.addEventListener("click", () => {
+            sidebar.classList.toggle("open");
+            fetchScore();
+          });
+
+          // Quit button uses translated confirm
+          quitBtn.addEventListener("click", () => {
+            if (confirm(getText("quitConfirm"))) {
+              window.location.href = "/Pages/Homepage.html";
+            }
+          });
+
+          // Set username
+          const username = sessionStorage.getItem("player_name") || "Player";
+          document.getElementById("username").textContent = username;
+
+          // Fetch player score
+          function fetchScore() {
+            fetch("../Logic/get_score.php")
+              .then((res) => res.json())
+              .then((data) => {
+                scoreDisplay.textContent = data.score;
+              })
+              .catch((err) => console.error("Error fetching score:", err));
+          }
+
+          setInterval(fetchScore, 5000);
+        });
+    </script>
 </html>

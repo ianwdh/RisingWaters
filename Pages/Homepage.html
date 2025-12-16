@@ -33,9 +33,25 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding-top: 75vh;
+        padding-top: 60vh;
         text-align: center;
         color: white;
+      }
+      .language-btn {
+        background: rgba(0, 0, 0, 0.5);
+        border: 2px solid white;
+        color: white;
+        font-size: 2rem;
+        margin: 10px;
+        padding: 10px 25px;
+        cursor: pointer;
+        border-radius: 12px;
+        font-family: "Luckiest Guy", cursive;
+        transition: transform 0.3s, background 0.3s;
+      }
+      .language-btn:hover {
+        transform: scale(1.2);
+        background: rgba(255, 255, 255, 0.2);
       }
       .btn-primary {
         background: none;
@@ -46,9 +62,16 @@
         transition: 0.3s;
         font-family: "Luckiest Guy", cursive;
         text-decoration: underline;
+        margin-top: 30px;
       }
       .btn-primary:hover {
         transform: scale(1.3);
+      }
+      #pickLangText {
+        font-size: 3rem;
+        font-family: "Luckiest Guy", cursive;
+        color: black;
+        margin-bottom: 20px;
       }
     </style>
   </head>
@@ -58,7 +81,19 @@
     </video>
 
     <div class="content">
-      <button id="playBtn" class="btn btn-primary" onclick="startGame()">
+      <h1 id="pickLangText">Please pick a language</h1>
+      <div id="languageOptions">
+        <button class="language-btn" data-lang="en">English</button>
+        <button class="language-btn" data-lang="ms">Malay</button>
+        <button class="language-btn" data-lang="zh">Chinese</button>
+      </div>
+
+      <button
+        id="playBtn"
+        class="btn btn-primary"
+        onclick="startGame()"
+        style="display: none"
+      >
         PLAY
       </button>
     </div>
@@ -73,6 +108,31 @@
         window.location.href = "/Pages/Login.html";
       }
 
+      const languageButtons = document.querySelectorAll(".language-btn");
+      const playBtn = document.getElementById("playBtn");
+      const pickLangText = document.getElementById("pickLangText");
+
+      // Language selection
+      languageButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const chosenLang = btn.getAttribute("data-lang");
+          sessionStorage.setItem("gameLang", chosenLang);
+
+          // Update the PLAY button text based on selected language
+          const playText = {
+            en: "PLAY",
+            ms: "MAIN",
+            zh: "开始",
+          };
+          playBtn.textContent = playText[chosenLang];
+          playBtn.style.display = "block";
+
+          // Optionally hide language buttons after selection
+          document.getElementById("languageOptions").style.display = "none";
+          pickLangText.textContent = "Language selected!";
+        });
+      });
+
       function startGame() {
         // Redirect to start.php to generate a new singleplayer session
         window.location.href = "../Logic/start.php";
@@ -82,25 +142,75 @@
     <div id="sidebarPlaceholder"></div>
 
     <script>
+      /* =========================
+  TRANSLATIONS & LANGUAGE SYSTEM
+  ========================= */
+      const translations = {
+        en: {
+          playerScoreLabel: "Player Score",
+          quitGame: "Quit Game",
+          quitConfirm: "Are you sure you want to quit?",
+        },
+        ms: {
+          playerScoreLabel: "Skor Pemain",
+          quitGame: "Keluar Permainan",
+          quitConfirm: "Adakah anda pasti mahu keluar?",
+        },
+        zh: {
+          playerScoreLabel: "玩家分数",
+          quitGame: "退出游戏",
+          quitConfirm: "你确定要退出吗？",
+        },
+      };
+
+      function getText(key) {
+        const lang = sessionStorage.getItem("gameLang") || "en";
+        return translations[lang][key] || translations.en[key];
+      }
+
+      function applyLanguage() {
+        const lang = sessionStorage.getItem("gameLang") || "en";
+
+        // Update sidebar elements
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          el.textContent = translations[lang][key] || translations.en[key];
+        });
+
+        // Optional: update other elements on the page if needed
+        // For example, update PLAY button if it exists
+        const playBtn = document.getElementById("playBtn");
+        if (playBtn) {
+          const playText = { en: "PLAY", ms: "MAIN", zh: "开始" };
+          playBtn.textContent = playText[lang];
+        }
+      }
+
+      /* =========================
+  FETCH & APPLY SIDEBAR
+  ========================= */
       fetch("sidebar.html")
         .then((response) => response.text())
         .then((data) => {
           document.getElementById("sidebarPlaceholder").innerHTML = data;
 
+          // Apply language after sidebar is inserted
+          applyLanguage();
+
           const sidebar = document.getElementById("sidebar");
           const toggle = document.getElementById("sidebarToggle");
           const scoreDisplay = document.getElementById("playerScore");
+          const quitBtn = sidebar.querySelector("#quitGameBtn");
 
           // Toggle sidebar & fetch score
           toggle.addEventListener("click", () => {
             sidebar.classList.toggle("open");
-            fetchScore(); // fetch score when sidebar opens
+            fetchScore();
           });
 
-          // Quit button
-          const quitBtn = sidebar.querySelector("#quitGameBtn");
+          // Quit button uses translated confirm
           quitBtn.addEventListener("click", () => {
-            if (confirm("Are you sure you want to quit?")) {
+            if (confirm(getText("quitConfirm"))) {
               window.location.href = "/Pages/Homepage.html";
             }
           });
@@ -111,7 +221,7 @@
 
           // Fetch player score
           function fetchScore() {
-            fetch("../Logic/get_score.php") // adjust path as needed
+            fetch("../Logic/get_score.php")
               .then((res) => res.json())
               .then((data) => {
                 scoreDisplay.textContent = data.score;
@@ -119,7 +229,6 @@
               .catch((err) => console.error("Error fetching score:", err));
           }
 
-          // Optional: auto-refresh every 5 seconds
           setInterval(fetchScore, 5000);
         });
     </script>

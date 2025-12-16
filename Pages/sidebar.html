@@ -1,197 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Sidebar with Player Score</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sidebar with Player Score</title>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap"
+      rel="stylesheet"
+    />
 
-<style>
-  body {
-    margin: 0;
-    font-family: "Luckiest Guy", cursive;
-    background: #1e1e1e;
-    color: #fff;
-  }
+    <style>
+      body {
+        margin: 0;
+        font-family: "Luckiest Guy", cursive;
+        background: #1e1e1e;
+        color: #fff;
+      }
 
-  /* Sidebar */
-  #sidebar {
-    position: fixed;
-    top: 0;
-    left: -320px; /* completely off-screen */
-    width: 280px;
-    height: 100%;
-    background: #5dade2;
-    backdrop-filter: blur(6px);
-    padding: 25px 20px 120px 20px;
-    box-shadow: 2px 0 15px rgba(0,0,0,0.5);
-    z-index: 9998;
-    display: flex;
-    flex-direction: column;
-    color: #fff;
-    border-radius: 0 15px 15px 0;
-    transition: left 0.4s ease;
-  }
-  #sidebar.open {
-    left: 0;
-  }
+      #sidebar {
+        position: fixed;
+        top: 0;
+        left: -320px;
+        width: 280px;
+        height: 100%;
+        background: #5dade2;
+        backdrop-filter: blur(6px);
+        padding: 25px 20px 120px 20px;
+        box-shadow: 2px 0 15px rgba(0, 0, 0, 0.5);
+        z-index: 9998;
+        display: flex;
+        flex-direction: column;
+        color: #fff;
+        border-radius: 0 15px 15px 0;
+        transition: left 0.4s ease;
+      }
+      #sidebar.open {
+        left: 0;
+      }
 
-  /* Sidebar header */
-  .sidebar-header {
-    text-align: center;
-    margin-bottom: 30px;
-  }
-  .sidebar-header img {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    margin-bottom: 10px;
-    border: 2px solid #fff;
-  }
-  .sidebar-header h3 {
-    margin: 0;
-    font-size: 1.6rem;
-  }
+      .sidebar-header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .sidebar-header img {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        margin-bottom: 10px;
+        border: 2px solid #fff;
+      }
+      .sidebar-header h3 {
+        margin: 0;
+        font-size: 1.6rem;
+      }
 
-  /* Sections */
-  .sidebar-section {
-    margin-bottom: 35px;
-    display: flex;
-    flex-direction: column;
-    font-size: 1.2rem;
-  }
-  .sidebar-section label {
-    margin-bottom: 12px;
-    font-family: "Luckiest Guy", cursive;
-  }
-  .sidebar-section select {
-    width: 100%;
-    height: 40px;
-    font-family: "Luckiest Guy", cursive;
-    font-size: 1.2rem;
-    padding: 5px;
-    margin-bottom: 25px;
-    border-radius: 8px;
-    border: none;
-  }
-  .sidebar-section p {
-    font-family: "Luckiest Guy", cursive;
-    font-size: 1.3rem;
-    margin: 0;
-    padding: 10px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 8px;
-    text-align: center;
-  }
+      .sidebar-section {
+        margin-bottom: 35px;
+        display: flex;
+        flex-direction: column;
+        font-size: 1.2rem;
+      }
+      .sidebar-section p {
+        font-family: "Luckiest Guy", cursive;
+        font-size: 1.3rem;
+        margin: 0;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        text-align: center;
+      }
 
-  /* Quit button */
-  #quitGameBtn {
-    font-family: "Luckiest Guy", cursive;
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 14px 0;
-    font-size: 1.4rem;
-    border-radius: 10px;
-    cursor: pointer;
-    width: 100%;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-    margin-top: auto;
-    margin-bottom: 40px;
-    transition: transform 0.2s, background 0.3s;
-  }
-  #quitGameBtn:hover { background-color: #ff4d4d; transform: scale(1.05); }
+      #quitGameBtn {
+        font-family: "Luckiest Guy", cursive;
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 14px 0;
+        font-size: 1.4rem;
+        border-radius: 10px;
+        cursor: pointer;
+        width: 100%;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        margin-top: auto;
+        margin-bottom: 40px;
+        transition: transform 0.2s, background 0.3s;
+      }
+      #quitGameBtn:hover {
+        background-color: #ff4d4d;
+        transform: scale(1.05);
+      }
 
-  /* Gear toggle icon */
-  #sidebarToggle {
-    position: fixed;
-    bottom: 5px;
-    left: 0; /* start at screen edge */
-    font-size: 2.2rem;
-    background: #5dade2;
-    padding: 12px;
-    border-radius: 0 12px 12px 0;
-    cursor: pointer;
-    z-index: 9999;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: left 0.4s ease, background 0.3s, transform 0.3s;
-  }
-  #sidebarToggle:hover {
-    background: rgba(41,128,185,0.9);
-  }
+      #sidebarToggle {
+        position: fixed;
+        bottom: 5px;
+        left: 0;
+        font-size: 2.2rem;
+        background: #5dade2;
+        padding: 12px;
+        border-radius: 0 12px 12px 0;
+        cursor: pointer;
+        z-index: 9999;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: left 0.4s ease, background 0.3s, transform 0.3s;
+      }
+      #sidebarToggle:hover {
+        background: rgba(41, 128, 185, 0.9);
+      }
+      #sidebar.open ~ #sidebarToggle {
+        left: 320px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="sidebar">
+      <div class="sidebar-header">
+        <img src="https://via.placeholder.com/70" alt="Profile" />
+        <h3 id="username">Player</h3>
+      </div>
 
-  /* Move toggle along with sidebar, placed just outside sidebar */
-  #sidebar.open ~ #sidebarToggle {
-    left: 320px; /* sidebar width */
-  }
+      <div class="sidebar-section">
+        <label data-i18n="playerScoreLabel">Player Score</label>
+        <p id="playerScore">0</p>
+      </div>
 
-</style>
-</head>
-<body>
+      <button id="quitGameBtn" data-i18n="quitGame">Quit Game</button>
+    </div>
 
-<!-- Sidebar -->
-<div id="sidebar">
-  <div class="sidebar-header">
-    <img src="https://via.placeholder.com/70" alt="Profile">
-    <h3 id="username">Player</h3>
-  </div>
+    <div id="sidebarToggle">
+      <i class="bi bi-gear-fill"></i>
+    </div>
 
-  <div class="sidebar-section">
-    <label for="languageSelect">Language</label>
-    <select id="languageSelect">
-      <option>English</option>
-      <option>Malay</option>
-      <option>Chinese</option>
-    </select>
-  </div>
+    <script>
+      const profilePic = document.getElementById("profilePic");
+      profilePic.addEventListener("click", () => {
+        window.location.href = "/Pages/Edit_Profile.html";
+      });
+    </script>
 
-  <div class="sidebar-section">
-    <label>Player Score</label>
-    <p id="playerScore">0</p>
-  </div>
+    <script>
+      const toggle = document.getElementById("sidebarToggle");
+      const sidebar = document.getElementById("sidebar");
+      const quitBtn = document.getElementById("quitGameBtn");
+      const scoreDisplay = document.getElementById("playerScore");
 
-  <button id="quitGameBtn">Quit Game</button>
-</div>
+      toggle.addEventListener("click", () => {
+        sidebar.classList.toggle("open");
+        fetchScore();
+      });
 
-<!-- Gear toggle button -->
-<div id="sidebarToggle">
-  <i class="bi bi-gear-fill"></i>
-</div>
+      quitBtn.addEventListener("click", () => {
+        if (confirm(getText("quitConfirm")))
+          window.location.href = "/Pages/Homepage.html";
+      });
 
-<script>
-  const toggle = document.getElementById("sidebarToggle");
-  const sidebar = document.getElementById("sidebar");
-  const quitBtn = document.getElementById("quitGameBtn");
-  const scoreDisplay = document.getElementById("playerScore");
+      document.getElementById("username").textContent =
+        sessionStorage.getItem("player_name") || "Player";
 
-  // Toggle sidebar & fetch score
-  toggle.addEventListener("click", () => {
-    sidebar.classList.toggle("open");
-    fetchScore();
-  });
+      function fetchScore() {
+        fetch("../Logic/get_score.php")
+          .then((res) => res.json())
+          .then((data) => {
+            scoreDisplay.textContent = data.score;
+          })
+          .catch((err) => console.error("Error fetching score:", err));
+      }
 
-  // Quit with confirm
-  quitBtn.addEventListener("click", () => {
-    if(confirm("Are you sure you want to quit?")) {
-      window.location.href = "/Pages/Homepage.html";
-    }
-  });
+      /* =========================
+     LANGUAGE SYSTEM (ONLY)
+     ========================= */
 
-  // Set username
-  document.getElementById("username").textContent = sessionStorage.getItem("player_name") || "Player";
+      const translations = {
+        en: {
+          playerScoreLabel: "Player Score",
+          quitGame: "Quit Game",
+          quitConfirm: "Are you sure you want to quit?",
+        },
+        ms: {
+          playerScoreLabel: "Skor Pemain",
+          quitGame: "Keluar Permainan",
+          quitConfirm: "Adakah anda pasti mahu keluar?",
+        },
+        zh: {
+          playerScoreLabel: "玩家分数",
+          quitGame: "退出游戏",
+          quitConfirm: "你确定要退出吗？",
+        },
+      };
 
-  // Fetch player score
-  function fetchScore() {
-    fetch("../Logic/get_score.php")
-      .then(res => res.json())
-      .then(data => { scoreDisplay.textContent = data.score; })
-      .catch(err => console.error("Error fetching score:", err));
-  }
-</script>
+      function getText(key) {
+        const lang = localStorage.getItem("gamelang") || "en";
+        return translations[lang][key] || translations.en[key];
+      }
 
-</body>
+      function applyLanguage() {
+        const lang = localStorage.getItem("gamelang") || "en";
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          el.textContent = translations[lang][key] || translations.en[key];
+        });
+      }
+
+      applyLanguage();
+    </script>
+  </body>
 </html>

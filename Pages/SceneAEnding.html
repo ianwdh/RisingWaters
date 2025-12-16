@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rising Waters - Flood Safety Game</title>
+
     <link rel="stylesheet" href="css/bootstrap.min.css" />
     <link rel="stylesheet" href="style.css" />
     <link
@@ -35,14 +36,13 @@
         z-index: -1;
       }
 
-      /* Full-screen overlay */
       .overlay {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(10, 10, 10, 0.85); /* dark, ominous */
+        background-color: rgba(10, 10, 10, 0.85);
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -64,12 +64,11 @@
         margin-bottom: 30px;
       }
 
-      /* End button larger */
       .end-btn {
         position: fixed;
-        bottom: 100px; /* distance from bottom */
-        padding: 14px 28px; /* bigger padding */
-        font-size: 1.6rem; /* bigger text */
+        bottom: 100px;
+        padding: 14px 28px;
+        font-size: 1.6rem;
         background: rgb(0, 255, 98);
         border: none;
         border-radius: 12px;
@@ -83,29 +82,47 @@
       }
     </style>
   </head>
+
   <body>
     <!-- Background video -->
     <video class="background-video" autoplay playsinline id="bgVideo">
       <source src="../Animations/SceneAEnding.mp4" type="video/mp4" />
     </video>
 
-    <!-- Ominous overlay -->
+    <!-- Ending overlay -->
     <div class="overlay" id="overlay">
       <h1 id="typewriter"></h1>
-      <button
-        class="end-btn"
-        onclick="window.location.href='../Logic/finish.php'"
-      >
-        End
-      </button>
+      <button class="end-btn" id="endBtn">End</button>
     </div>
 
     <script>
       const video = document.getElementById("bgVideo");
       const overlay = document.getElementById("overlay");
       const typewriterEl = document.getElementById("typewriter");
+      const endBtn = document.getElementById("endBtn");
 
-      const text = "The rain finally subsides as you are finally safe.";
+      /* ================= LANGUAGE SETUP ================= */
+      const lang = sessionStorage.getItem("language") || "English";
+
+      const textContent = {
+        English: {
+          endingText: "The rain finally subsides as you are finally safe.",
+          endBtn: "End",
+        },
+        Malay: {
+          endingText:
+            "Hujan akhirnya reda dan anda kini berada dalam keadaan selamat.",
+          endBtn: "Tamat",
+        },
+        Chinese: {
+          endingText: "雨终于停了，你终于安全了。",
+          endBtn: "结束",
+        },
+      };
+
+      const text = textContent[lang].endingText;
+      endBtn.textContent = textContent[lang].endBtn;
+
       let index = 0;
 
       const typewriterSound = new Audio("../Sound/typewriter.wav");
@@ -113,67 +130,122 @@
 
       function typeWriter() {
         if (index < text.length) {
-          typewriterSound.currentTime = 0;
-          typewriterSound.play();
+          if (typewriterSound.paused) {
+            typewriterSound.currentTime = 0;
+            typewriterSound.play();
+          }
           typewriterEl.textContent += text.charAt(index);
           index++;
           setTimeout(typeWriter, 50);
         } else {
           typewriterSound.pause();
           typewriterSound.currentTime = 0;
-
-          arrowBtn.classList.add("show");
         }
       }
 
       video.addEventListener("ended", () => {
         overlay.classList.add("visible");
-        setTimeout(typeWriter, 500); // slight delay before typing starts
+        setTimeout(typeWriter, 500);
+      });
+
+      endBtn.addEventListener("click", () => {
+        window.location.href = "../Logic/finish.php";
       });
     </script>
   </body>
+
+  <!-- Sidebar -->
   <div id="sidebarPlaceholder"></div>
 
   <script>
-    fetch("sidebar.html")
-      .then((response) => response.text())
-      .then((data) => {
-        document.getElementById("sidebarPlaceholder").innerHTML = data;
+      /* =========================
+  TRANSLATIONS & LANGUAGE SYSTEM
+  ========================= */
+      const translations = {
+        en: {
+          playerScoreLabel: "Player Score",
+          quitGame: "Quit Game",
+          quitConfirm: "Are you sure you want to quit?",
+        },
+        ms: {
+          playerScoreLabel: "Skor Pemain",
+          quitGame: "Keluar Permainan",
+          quitConfirm: "Adakah anda pasti mahu keluar?",
+        },
+        zh: {
+          playerScoreLabel: "玩家分数",
+          quitGame: "退出游戏",
+          quitConfirm: "你确定要退出吗？",
+        },
+      };
 
-        const sidebar = document.getElementById("sidebar");
-        const toggle = document.getElementById("sidebarToggle");
-        const scoreDisplay = document.getElementById("playerScore");
+      function getText(key) {
+        const lang = sessionStorage.getItem("gameLang") || "en";
+        return translations[lang][key] || translations.en[key];
+      }
 
-        // Toggle sidebar & fetch score
-        toggle.addEventListener("click", () => {
-          sidebar.classList.toggle("open");
-          fetchScore(); // fetch score when sidebar opens
+      function applyLanguage() {
+        const lang = sessionStorage.getItem("gameLang") || "en";
+
+        // Update sidebar elements
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          el.textContent = translations[lang][key] || translations.en[key];
         });
 
-        // Quit button
-        const quitBtn = sidebar.querySelector("#quitGameBtn");
-        quitBtn.addEventListener("click", () => {
-          if (confirm("Are you sure you want to quit?")) {
-            window.location.href = "/Pages/Homepage.html";
-          }
-        });
-
-        // Set username
-        const username = sessionStorage.getItem("player_name") || "Player";
-        document.getElementById("username").textContent = username;
-
-        // Fetch player score
-        function fetchScore() {
-          fetch("../Logic/get_score.php") // adjust path as needed
-            .then((res) => res.json())
-            .then((data) => {
-              scoreDisplay.textContent = data.score;
-            })
-            .catch((err) => console.error("Error fetching score:", err));
+        // Optional: update other elements on the page if needed
+        // For example, update PLAY button if it exists
+        const playBtn = document.getElementById("playBtn");
+        if (playBtn) {
+          const playText = { en: "PLAY", ms: "MAIN", zh: "开始" };
+          playBtn.textContent = playText[lang];
         }
+      }
 
-        // Optional: auto-refresh every 5 seconds
-        setInterval(fetchScore, 5000);
-      });
-  </script>
+      /* =========================
+  FETCH & APPLY SIDEBAR
+  ========================= */
+      fetch("sidebar.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("sidebarPlaceholder").innerHTML = data;
+
+          // Apply language after sidebar is inserted
+          applyLanguage();
+
+          const sidebar = document.getElementById("sidebar");
+          const toggle = document.getElementById("sidebarToggle");
+          const scoreDisplay = document.getElementById("playerScore");
+          const quitBtn = sidebar.querySelector("#quitGameBtn");
+
+          // Toggle sidebar & fetch score
+          toggle.addEventListener("click", () => {
+            sidebar.classList.toggle("open");
+            fetchScore();
+          });
+
+          // Quit button uses translated confirm
+          quitBtn.addEventListener("click", () => {
+            if (confirm(getText("quitConfirm"))) {
+              window.location.href = "/Pages/Homepage.html";
+            }
+          });
+
+          // Set username
+          const username = sessionStorage.getItem("player_name") || "Player";
+          document.getElementById("username").textContent = username;
+
+          // Fetch player score
+          function fetchScore() {
+            fetch("../Logic/get_score.php")
+              .then((res) => res.json())
+              .then((data) => {
+                scoreDisplay.textContent = data.score;
+              })
+              .catch((err) => console.error("Error fetching score:", err));
+          }
+
+          setInterval(fetchScore, 5000);
+        });
+    </script>
 </html>

@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rising Waters - Flood Safety Game</title>
+
     <link rel="stylesheet" href="css/bootstrap.min.css" />
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
@@ -13,6 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap"
       rel="stylesheet"
     />
+
     <style>
       html,
       body {
@@ -33,7 +35,6 @@
         z-index: -2;
       }
 
-      /* Overlay */
       .overlay {
         position: fixed;
         top: 0;
@@ -55,22 +56,20 @@
         visibility: visible;
       }
 
-      /* Top bar: icon + message */
       .top-bar {
         display: flex;
         align-items: center;
         color: white;
         font-size: 1.2rem;
-        gap: 12px; /* small space between icon and message */
+        gap: 12px;
       }
 
-      /* Center message */
       .center-message {
         flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2rem; /* increased from 1.4rem */
+        font-size: 2rem;
         color: white;
         text-align: center;
         max-width: 80%;
@@ -79,11 +78,10 @@
         min-height: 3em;
       }
 
-      /* Retry button larger */
       .retry-btn {
         margin: 50px auto;
-        padding: 14px 28px; /* bigger padding */
-        font-size: 1.6rem; /* bigger text */
+        padding: 14px 28px;
+        font-size: 1.6rem;
         background: crimson;
         border: none;
         border-radius: 12px;
@@ -96,7 +94,6 @@
         background: darkred;
       }
 
-      /* Wave rising effect */
       .wave {
         position: fixed;
         bottom: -100%;
@@ -123,29 +120,22 @@
       }
     </style>
   </head>
+
   <body>
     <!-- Background video -->
     <video class="background-video" autoplay playsinline>
       <source src="../Animations/Scene4BPushing.mp4" type="video/mp4" />
     </video>
 
-    <!-- Wave image -->
     <div class="wave" id="wave"></div>
 
-    <!-- Dark overlay -->
     <div class="overlay" id="overlay">
       <div class="top-bar">
-        <i class="bi bi-exclamation-circle-fill" style="font-size: 2rem"></i>
+        <i class="bi bi-ban" style="font-size: 2rem"></i>
         <span id="message1"></span>
       </div>
       <div class="center-message" id="message2"></div>
-      <button
-        class="retry-btn"
-        id="retryBtn"
-        onclick="window.location.href='Scene4B.html'"
-      >
-        Retry
-      </button>
+      <button class="retry-btn" id="retryBtn">Retry</button>
     </div>
 
     <script>
@@ -156,10 +146,30 @@
       const msg2Element = document.getElementById("message2");
       const retryBtn = document.getElementById("retryBtn");
 
-      const message1 =
-        "In emergencies, staying calm and avoiding panic is vital—rash actions can put both you and others in greater danger.";
-      const message2 =
-        "You started pushing people to get on board and chaos breaks out, eventually the floodwater rises and sweeps everyone away.";
+      /* ================= LANGUAGE SETUP ================= */
+      const lang = sessionStorage.getItem("language") || "English";
+
+      const textContent = {
+        English: {
+          msg1: "In emergencies, staying calm and avoiding panic is vital—rash actions can put both you and others in greater danger.",
+          msg2: "You started pushing people to get on board and chaos breaks out, eventually the floodwater rises and sweeps everyone away.",
+          retry: "Retry",
+        },
+        Malay: {
+          msg1: "Dalam kecemasan, kekal tenang dan elakkan panik adalah sangat penting—tindakan terburu-buru boleh membahayakan diri anda dan orang lain.",
+          msg2: "Anda mula menolak orang lain untuk naik dan kekacauan tercetus, akhirnya air banjir naik dan menghanyutkan semua orang.",
+          retry: "Cuba Lagi",
+        },
+        Chinese: {
+          msg1: "在紧急情况下，保持冷静、避免恐慌非常重要——鲁莽的行为会让你和他人陷入更大的危险。",
+          msg2: "你开始推挤他人试图登机，现场陷入混乱，最终洪水上涨并将所有人冲走。",
+          retry: "重试",
+        },
+      };
+
+      const message1 = textContent[lang].msg1;
+      const message2 = textContent[lang].msg2;
+      retryBtn.textContent = textContent[lang].retry;
 
       const typewriterSound = new Audio("../Sound/typewriter.wav");
       typewriterSound.loop = true;
@@ -168,20 +178,16 @@
         let i = 0;
         element.textContent = "";
 
-        // 🎵 Start typewriter sound
         typewriterSound.currentTime = 0;
         typewriterSound.play();
 
         function typing() {
           if (i < text.length) {
-            element.textContent += text.charAt(i);
-            i++;
+            element.textContent += text.charAt(i++);
             setTimeout(typing, speed);
           } else {
-            // 🎵 Stop typewriter sound when text is done
             typewriterSound.pause();
             typewriterSound.currentTime = 0;
-
             if (callback) callback();
           }
         }
@@ -198,71 +204,110 @@
         }, 1500);
       });
 
-      retryBtn.addEventListener("click", function () {
-        // Call score.php to subtract 50 points
+      retryBtn.addEventListener("click", () => {
         fetch("../Logic/score.php", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: "action=retry",
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log("Score update:", data);
-            // Redirect after score is updated
-            window.location.href = "Scene4B.html";
-          })
-          .catch((error) => {
-            console.error("Error updating score:", error);
-            // Still redirect even if score update fails
-            window.location.href = "Scene4B.html";
-          });
+        }).finally(() => {
+          window.location.href = "Scene4B.html";
+        });
       });
     </script>
   </body>
+
+  <!-- Sidebar -->
   <div id="sidebarPlaceholder"></div>
 
   <script>
-    fetch("sidebar.html")
-      .then((response) => response.text())
-      .then((data) => {
-        document.getElementById("sidebarPlaceholder").innerHTML = data;
+      /* =========================
+  TRANSLATIONS & LANGUAGE SYSTEM
+  ========================= */
+      const translations = {
+        en: {
+          playerScoreLabel: "Player Score",
+          quitGame: "Quit Game",
+          quitConfirm: "Are you sure you want to quit?",
+        },
+        ms: {
+          playerScoreLabel: "Skor Pemain",
+          quitGame: "Keluar Permainan",
+          quitConfirm: "Adakah anda pasti mahu keluar?",
+        },
+        zh: {
+          playerScoreLabel: "玩家分数",
+          quitGame: "退出游戏",
+          quitConfirm: "你确定要退出吗？",
+        },
+      };
 
-        const sidebar = document.getElementById("sidebar");
-        const toggle = document.getElementById("sidebarToggle");
-        const scoreDisplay = document.getElementById("playerScore");
+      function getText(key) {
+        const lang = sessionStorage.getItem("gameLang") || "en";
+        return translations[lang][key] || translations.en[key];
+      }
 
-        // Toggle sidebar & fetch score
-        toggle.addEventListener("click", () => {
-          sidebar.classList.toggle("open");
-          fetchScore(); // fetch score when sidebar opens
+      function applyLanguage() {
+        const lang = sessionStorage.getItem("gameLang") || "en";
+
+        // Update sidebar elements
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          el.textContent = translations[lang][key] || translations.en[key];
         });
 
-        // Quit button
-        const quitBtn = sidebar.querySelector("#quitGameBtn");
-        quitBtn.addEventListener("click", () => {
-          if (confirm("Are you sure you want to quit?")) {
-            window.location.href = "/Pages/Homepage.html";
-          }
-        });
-
-        // Set username
-        const username = sessionStorage.getItem("player_name") || "Player";
-        document.getElementById("username").textContent = username;
-
-        // Fetch player score
-        function fetchScore() {
-          fetch("../Logic/get_score.php") // adjust path as needed
-            .then((res) => res.json())
-            .then((data) => {
-              scoreDisplay.textContent = data.score;
-            })
-            .catch((err) => console.error("Error fetching score:", err));
+        // Optional: update other elements on the page if needed
+        // For example, update PLAY button if it exists
+        const playBtn = document.getElementById("playBtn");
+        if (playBtn) {
+          const playText = { en: "PLAY", ms: "MAIN", zh: "开始" };
+          playBtn.textContent = playText[lang];
         }
+      }
 
-        // Optional: auto-refresh every 5 seconds
-        setInterval(fetchScore, 5000);
-      });
-  </script>
+      /* =========================
+  FETCH & APPLY SIDEBAR
+  ========================= */
+      fetch("sidebar.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("sidebarPlaceholder").innerHTML = data;
+
+          // Apply language after sidebar is inserted
+          applyLanguage();
+
+          const sidebar = document.getElementById("sidebar");
+          const toggle = document.getElementById("sidebarToggle");
+          const scoreDisplay = document.getElementById("playerScore");
+          const quitBtn = sidebar.querySelector("#quitGameBtn");
+
+          // Toggle sidebar & fetch score
+          toggle.addEventListener("click", () => {
+            sidebar.classList.toggle("open");
+            fetchScore();
+          });
+
+          // Quit button uses translated confirm
+          quitBtn.addEventListener("click", () => {
+            if (confirm(getText("quitConfirm"))) {
+              window.location.href = "/Pages/Homepage.html";
+            }
+          });
+
+          // Set username
+          const username = sessionStorage.getItem("player_name") || "Player";
+          document.getElementById("username").textContent = username;
+
+          // Fetch player score
+          function fetchScore() {
+            fetch("../Logic/get_score.php")
+              .then((res) => res.json())
+              .then((data) => {
+                scoreDisplay.textContent = data.score;
+              })
+              .catch((err) => console.error("Error fetching score:", err));
+          }
+
+          setInterval(fetchScore, 5000);
+        });
+    </script>
 </html>
