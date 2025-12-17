@@ -158,10 +158,17 @@
           .then((data) => {
             if (data.status === "ok") {
               sessionStorage.setItem("player_name", data.username);
-              sessionStorage.setItem("player_id", data.player_id); // store player_id
+              sessionStorage.setItem("player_id", data.player_id);
+              sessionStorage.setItem("usertype", data.usertype); // 👈 ADD THIS
+
               showAlert("Login successfully!", "success");
+
               setTimeout(() => {
-                window.location.href = "/Pages/Homepage.html";
+                if (data.usertype === "admin") {
+                  window.location.href = "/Pages/AdminHomepage.html";
+                } else {
+                  window.location.href = "/Pages/Homepage.html";
+                }
               }, 1000);
             } else {
               showAlert(

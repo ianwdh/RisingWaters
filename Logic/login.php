@@ -14,15 +14,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($res->num_rows === 1) {
         $row = $res->fetch_assoc();
+
         if (password_verify($password, $row['password'])) {
 
             // --- Set PHP session variables ---
             $_SESSION['player_id'] = $row['id'];
             $_SESSION['player_name'] = $row['username'];
+            $_SESSION['usertype'] = $row['usertype']; // ✅ ADD THIS
             $_SESSION['session_id'] = uniqid(); // unique game session ID
 
             // --- Insert a new game session ---
-            $insertGame = $conn->prepare("INSERT INTO games (player_id, session, score, sessionstatus) VALUES (?, ?, 0, 'active')");
+            $insertGame = $conn->prepare(
+                "INSERT INTO games (player_id, session, score, sessionstatus) 
+                 VALUES (?, ?, 0, 'active')"
+            );
             $insertGame->bind_param("is", $_SESSION['player_id'], $_SESSION['session_id']);
             $insertGame->execute();
             $insertGame->close();
@@ -31,7 +36,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo json_encode([
                 "status" => "ok",
                 "username" => $row['username'],
-                "player_id" => $row['id']
+                "player_id" => $row['id'],
+                "usertype" => $row['usertype'] // ✅ ADD THIS
             ]);
             exit();
         }
@@ -42,4 +48,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         "message" => "Invalid username or password"
     ]);
 }
-?>

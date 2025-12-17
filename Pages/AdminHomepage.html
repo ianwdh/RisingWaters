@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Admin Dashboard</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+
+    <style>
+      body {
+        margin: 0;
+        font-family: "Luckiest Guy", cursive;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .background-video {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        z-index: -1;
+      }
+
+      .alert {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px 25px;
+        border-radius: 10px;
+        font-size: 1.2rem;
+        display: none;
+        z-index: 300;
+      }
+
+      .alert.success {
+        background: #4caf50;
+        color: white;
+      }
+
+      .alert.error {
+        background: #f44336;
+        color: white;
+      }
+
+      .panel {
+        background: rgba(0, 0, 0, 0.85);
+        padding: 30px 40px;
+        border-radius: 20px;
+        text-align: center;
+        color: white;
+        width: 360px;
+      }
+
+      h1 {
+        font-family: "Luckiest Guy", cursive;
+        margin-bottom: 25px;
+      }
+
+      .btn-main {
+        width: 100%;
+        margin: 15px 0;
+        padding: 12px;
+        font-size: 1.5rem;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        font-family: "Luckiest Guy", cursive;
+        background: #3498db;
+        color: white;
+        transition: 0.3s;
+      }
+
+      .btn-main:hover {
+        background: #00ff00;
+        color: black;
+        transform: scale(1.05);
+      }
+
+      .form-group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .form-group input {
+        font-family: "Luckiest Guy", cursive;
+        font-size: 1.2rem;
+        padding: 8px;
+        width: 200px;
+        border-radius: 10px;
+        border: 2px solid #000;
+        text-align: center;
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <video class="background-video" autoplay loop muted playsinline>
+      <source src="../Animations/Homepage.mp4" type="video/mp4" />
+    </video>
+
+    <div class="alert" id="alertBox"></div>
+
+    <!-- MAIN BUTTONS -->
+    <div class="panel" id="adminMenu">
+      <h1>Admin Homepage</h1>
+      <button class="btn-main" id="registerAdminBtn">Register Admin</button>
+      <button class="btn-main" id="manageUsersBtn">Manage Users</button>
+      <button class="btn-main" id="manageSessionsBtn">Manage Sessions</button>
+      <button class="btn-main" id="playGameBtn">Play Game</button>
+    </div>
+
+    <!-- REGISTER ADMIN FORM -->
+    <div class="panel hidden" id="registerAdminForm">
+      <h2>Register Admin</h2>
+
+      <div class="form-group">
+        <input type="text" id="adminUsername" placeholder="Username" />
+      </div>
+
+      <div class="form-group">
+        <input type="password" id="adminPassword" placeholder="Password" />
+      </div>
+
+      <button class="btn-main" id="createAdminBtn">Create Admin</button>
+      <button class="btn-main" id="backBtn">Back</button>
+    </div>
+
+    <script>
+      const registerBtn = document.getElementById("registerAdminBtn");
+      const adminMenu = document.getElementById("adminMenu");
+      const form = document.getElementById("registerAdminForm");
+      const alertBox = document.getElementById("alertBox");
+      const playGameBtn = document.getElementById("playGameBtn");
+      const manageUsersBtn = document.getElementById("manageUsersBtn");
+      const manageSessionsBtn = document.getElementById("manageSessionsBtn");
+
+      // Register Admin
+      registerBtn.onclick = () => {
+        adminMenu.classList.add("hidden");
+        form.classList.remove("hidden");
+      };
+
+      // Back from form
+      document.getElementById("backBtn").onclick = () => {
+        form.classList.add("hidden");
+        adminMenu.classList.remove("hidden");
+      };
+
+      // Play Game
+      playGameBtn.onclick = () => {
+        window.location.href = "/Pages/Homepage.html";
+      };
+
+      // Manage Users
+      manageUsersBtn.onclick = () => {
+        window.location.href = "ManageUsers.html";
+      };
+
+      // Manage Sessions
+      manageSessionsBtn.onclick = () => {
+        window.location.href = "ManageSessions.html";
+      };
+
+      // Create Admin
+      document.getElementById("createAdminBtn").onclick = () => {
+        const username = document.getElementById("adminUsername").value.trim();
+        const password = document.getElementById("adminPassword").value.trim();
+
+        if (!username || !password) {
+          showAlert("Please fill all fields", "error");
+          return;
+        }
+
+        const fd = new FormData();
+        fd.append("username", username);
+        fd.append("password", password);
+
+        fetch("../Logic/admin_register.php", {
+          method: "POST",
+          body: fd,
+        })
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.status === "ok") {
+              showAlert("Admin created successfully", "success");
+              setTimeout(() => location.reload(), 1200);
+            } else if (d.status === "taken") {
+              showAlert("Username already exists", "error");
+            } else {
+              showAlert("Server error", "error");
+            }
+          });
+      };
+
+      function showAlert(msg, type) {
+        alertBox.textContent = msg;
+        alertBox.className = `alert ${type}`;
+        alertBox.style.display = "block";
+        setTimeout(() => (alertBox.style.display = "none"), 3000);
+      }
+    </script>
+  </body>
+</html>

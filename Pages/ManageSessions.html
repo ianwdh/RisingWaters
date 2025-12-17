@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Manage Sessions</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+
+    <style>
+      body {
+        margin: 0;
+        font-family: "Luckiest Guy", cursive;
+        background: #222;
+        color: white;
+        padding: 20px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      h1 {
+        font-family: "Luckiest Guy", cursive;
+        margin-bottom: 20px;
+        text-align: center;
+        color: black;
+      }
+
+      .alert {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 1.2rem;
+        display: none;
+        margin-bottom: 15px;
+        max-width: 900px;
+        text-align: center;
+      }
+
+      .alert.success {
+        background: #4caf50;
+        color: white;
+      }
+      .alert.error {
+        background: #f44336;
+        color: white;
+      }
+
+      .table-container {
+        max-width: 900px;
+        width: 100%;
+        overflow-y: auto;
+        max-height: 500px;
+        background: rgba(0, 0, 0, 0.85);
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 10px;
+        border-bottom: 1px solid #555;
+        text-align: center;
+      }
+
+      th {
+        background: #3498db;
+      }
+
+      td button {
+        font-family: "Luckiest Guy", cursive;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        margin: 2px;
+        background: #f44336;
+        color: white;
+      }
+
+      td button:hover {
+        background: #00ff00;
+        color: black;
+      }
+
+      .pagination {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 50px; /* leave space for back button */
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .pagination button {
+        font-family: "Luckiest Guy", cursive;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: #3498db;
+        color: white;
+        transition: 0.3s;
+      }
+
+      .pagination button:hover {
+        background: #00ff00;
+        color: black;
+      }
+
+      #backBtn {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        font-family: "Luckiest Guy", cursive;
+        font-size: 1.5rem;
+        padding: 10px 20px;
+        border-radius: 12px;
+        border: none;
+        background: #3498db;
+        color: white;
+        cursor: pointer;
+        transition: 0.3s;
+        z-index: 100;
+      }
+
+      #backBtn:hover {
+        background: #00ff00;
+        color: black;
+      }
+
+      /* Background video */
+      .background-video {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        z-index: -1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Manage Sessions</h1>
+
+    <!-- Background Video -->
+    <video class="background-video" autoplay loop muted playsinline>
+      <source src="../Animations/Homepage.mp4" type="video/mp4" />
+    </video>
+
+    <!-- Background Audio -->
+    <audio autoplay loop>
+      <source src="../Animations/Homepage.mp3" type="audio/mpeg" />
+    </audio>
+
+    <div class="alert" id="alertBox"></div>
+
+    <div class="table-container">
+      <table id="sessionsTable">
+        <thead>
+          <tr>
+            <th>Player ID</th>
+            <th>Session</th>
+            <th>Session Status</th>
+            <th>Start Time</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="pagination" id="pagination"></div>
+
+    <button id="backBtn" onclick="window.location.href='AdminHomepage.html'">
+      Back
+    </button>
+
+    <script>
+      const alertBox = document.getElementById("alertBox");
+      let currentPage = 1;
+      const perPage = 20;
+
+      function loadSessions(page = 1) {
+        fetch(`../Logic/manage_sessions.php?page=${page}`)
+          .then((r) => r.json())
+          .then((data) => {
+            const tbody = document.querySelector("#sessionsTable tbody");
+            tbody.innerHTML = "";
+
+            data.sessions.forEach((session) => {
+              const tr = document.createElement("tr");
+
+              tr.innerHTML = `
+          <td>${session.player_id}</td>
+          <td>${session.session}</td>
+          <td>${session.sessionstatus}</td>
+          <td>${session.start_time}</td>
+          <td><button onclick="deleteSession('${session.id}')">Delete</button></td>
+        `;
+
+              tbody.appendChild(tr);
+            });
+
+            // Pagination
+            const pagination = document.getElementById("pagination");
+            pagination.innerHTML = "";
+            for (let i = 1; i <= data.totalPages; i++) {
+              const btn = document.createElement("button");
+              btn.textContent = i;
+              if (i === page) btn.style.background = "#00ff00";
+              btn.onclick = () => {
+                currentPage = i;
+                loadSessions(i);
+              };
+              pagination.appendChild(btn);
+            }
+          });
+      }
+
+      function deleteSession(id) {
+        if (!confirm("Are you sure you want to delete this session?")) return;
+        const fd = new FormData();
+        fd.append("action", "delete");
+        fd.append("id", id);
+
+        fetch("../Logic/manage_sessions.php", { method: "POST", body: fd })
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.status === "ok") showAlert("Deleted successfully", "success");
+            else showAlert("Server error", "error");
+            loadSessions(currentPage);
+          });
+      }
+
+      function showAlert(msg, type) {
+        alertBox.textContent = msg;
+        alertBox.className = `alert ${type}`;
+        alertBox.style.display = "block";
+        setTimeout(() => (alertBox.style.display = "none"), 3000);
+      }
+
+      // Initial load
+      loadSessions();
+    </script>
+  </body>
+</html>

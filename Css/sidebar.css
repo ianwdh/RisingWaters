@@ -1,0 +1,106 @@
+body {
+  margin: 0;
+  font-family: "Luckiest Guy", cursive;
+  background: #1e1e1e;
+  color: #fff;
+}
+
+#sidebar {
+  position: fixed;
+  top: 0;
+  left: -320px;
+  width: 280px;
+  height: 100%;
+  background: #5dade2;
+  padding: 25px 20px 120px 20px;
+  box-shadow: 2px 0 15px rgba(0, 0, 0, 0.5);
+  z-index: 10000; /* FIX */
+  display: flex;
+  flex-direction: column;
+  border-radius: 0 15px 15px 0;
+  transition: left 0.4s ease;
+}
+
+#sidebar.open {
+  left: 0;
+}
+
+.sidebar-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+/* CLICKABLE PROFILE PICTURE */
+.sidebar-header img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+  border: 2px solid #fff;
+  cursor: pointer;
+  pointer-events: auto; /* FIX */
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.sidebar-header img:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+}
+
+.sidebar-header h3 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.sidebar-section {
+  margin-bottom: 35px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-section p {
+  font-size: 1.3rem;
+  margin: 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  text-align: center;
+}
+
+#quitGameBtn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 14px 0;
+  font-size: 1.4rem;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: 40px;
+  transition: transform 0.2s, background 0.3s;
+  font-family: "Luckiest Guy", cursive;
+}
+
+#quitGameBtn:hover {
+  background-color: #ff4d4d;
+  transform: scale(1.05);
+}
+
+#sidebarToggle {
+  position: fixed;
+  bottom: 5px;
+  left: 0;
+  font-size: 2.2rem;
+  background: #5dade2;
+  padding: 12px;
+  border-radius: 0 12px 12px 0;
+  cursor: pointer;
+  z-index: 9999;
+  color: white;
+  transition: left 0.4s ease, transform 0.3s;
+}
+
+#sidebar.open ~ #sidebarToggle {
+  left: 320px;
+}

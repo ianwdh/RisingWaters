@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>Edit Profile</title>
+
     <link
       href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap"
       rel="stylesheet"
@@ -11,84 +12,106 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
     />
+
     <style>
       body {
         margin: 0;
         font-family: "Luckiest Guy", cursive;
         height: 100vh;
-        position: relative;
         overflow: hidden;
-
-        /* Center the form */
         display: flex;
         justify-content: center;
         align-items: center;
       }
 
-      /* Background video */
       .background-video {
         position: fixed;
-        top: 0;
-        left: 0;
+        inset: 0;
         width: 100vw;
         height: 100vh;
         object-fit: cover;
         z-index: -1;
       }
 
+      .alert {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px 25px;
+        border-radius: 10px;
+        font-size: 1.2rem;
+        display: none;
+        z-index: 300;
+      }
+
+      .alert.success {
+        background: #4caf50;
+        color: white;
+      }
+
+      .alert.error {
+        background: #f44336;
+        color: white;
+      }
+
       .edit-profile-form {
-        background: rgba(0, 0, 0, 0.6);
+        background: rgba(0, 0, 0, 0.85);
         padding: 30px 40px;
         border-radius: 20px;
         text-align: center;
         color: white;
         width: 350px;
-        position: relative;
         z-index: 1;
       }
 
-      .edit-profile-form img {
+      #currentAvatar {
         width: 100px;
         height: 100px;
         border-radius: 50%;
-        margin-bottom: 20px;
         border: 2px solid white;
+        cursor: pointer;
+        margin-bottom: 20px;
+        transition: transform 0.3s;
+      }
+
+      #currentAvatar:hover {
+        transform: scale(1.15);
       }
 
       .form-group {
         display: flex;
-        align-items: center;
-        margin-bottom: 20px;
         justify-content: center;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 20px;
       }
 
       .form-group input {
         font-family: "Luckiest Guy", cursive;
         font-size: 1.3rem;
         padding: 8px;
+        width: 180px;
         border-radius: 10px;
-        border: none;
+        border: 2px solid #000;
         text-align: center;
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        width: 200px;
+        background: #fff;
+        color: #000;
+        height: 38px;
         pointer-events: none;
-      }
-
-      .form-group i {
-        font-size: 1.5rem;
-        margin-left: 10px;
-        cursor: pointer;
       }
 
       .form-group input.editable {
         pointer-events: auto;
-        background: rgba(255, 255, 255, 0.4);
       }
 
-      /* Save button - blue default, green on hover */
+      .form-group i {
+        font-size: 1.5rem;
+        cursor: pointer;
+        margin-left: 15px;
+      }
+
       .btn-save {
-        font-family: "Luckiest Guy", cursive;
         background: #3498db;
         color: white;
         border: none;
@@ -97,37 +120,14 @@
         font-size: 1.5rem;
         cursor: pointer;
         transition: 0.3s;
+        font-family: "Luckiest Guy", cursive;
       }
 
       .btn-save:hover {
         background: #00ff00;
-        color: #000;
+        color: black;
       }
 
-      /* Alert on top */
-      .alert {
-        font-family: "Luckiest Guy", cursive;
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-size: 1.2rem;
-        display: none;
-        z-index: 10;
-      }
-
-      .alert.success {
-        background: #4caf50;
-        color: white;
-      }
-      .alert.error {
-        background: #f44336;
-        color: white;
-      }
-
-      /* Back to Game Button */
       #backBtn {
         position: fixed;
         bottom: 20px;
@@ -140,123 +140,227 @@
         background: #3498db;
         color: white;
         cursor: pointer;
-        transition: 0.3s transform, 0.3s background;
-        z-index: 100;
+        transition: 0.3s;
+        z-index: 200;
       }
 
       #backBtn:hover {
         transform: scale(1.2);
-        background: #5dade2;
+      }
+
+      .avatar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.75);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 250;
+      }
+
+      .avatar-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 110px);
+        gap: 20px;
+      }
+
+      .avatar-choice {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        cursor: pointer;
+        transform: scale(0);
+        border: 3px solid transparent;
+        transition: transform 0.3s, border 0.3s;
+      }
+
+      .avatar-choice:hover {
+        border: 3px solid #00ff00;
       }
     </style>
   </head>
+
   <body>
-    <!-- Background video -->
     <video class="background-video" autoplay loop muted playsinline>
       <source src="../Animations/Homepage.mp4" type="video/mp4" />
     </video>
 
-    <!-- Alert -->
     <div class="alert" id="alertBox"></div>
 
-    <!-- Profile form -->
     <div class="edit-profile-form">
-      <img src="https://via.placeholder.com/100" alt="Profile Picture" />
+      <img
+        id="currentAvatar"
+        src="../ProfilePictures/NormalMale.png"
+        alt="Profile Picture"
+      />
 
       <div class="form-group">
-        <input type="text" id="usernameInput" value="Player" />
+        <input type="text" id="usernameInput" />
         <i class="bi bi-pencil-fill" id="editUsername"></i>
       </div>
 
       <div class="form-group">
-        <input type="password" id="passwordInput" value="password123" />
-        <i class="bi bi-pencil-fill" id="editPassword"></i>
+        <input type="password" id="passwordInput" />
+        <i class="bi bi-eye-fill" id="togglePassword"></i>
       </div>
 
-      <button class="btn-save" id="saveBtn">Save</button>
+      <button class="btn-save" id="saveBtn" data-i18n="save">Save</button>
     </div>
 
-    <!-- Back to Game Button -->
-    <button id="backBtn">Back to Game</button>
+    <button id="backBtn" data-i18n="backToGame">Back to Game</button>
+
+    <div class="avatar-overlay" id="avatarOverlay">
+      <div class="avatar-grid" id="avatarGrid"></div>
+    </div>
+
+    <audio id="popSound" src="../Sounds/pop.mp3"></audio>
 
     <script>
+      /* =========================
+         Language System
+      ========================= */
+      const translations = {
+        en: {
+          save: "Save",
+          backToGame: "Back to Game",
+          updateSuccess: "Profile updated successfully",
+          updateFail: "Username already taken",
+          serverError: "Server error",
+        },
+        ms: {
+          save: "Simpan",
+          backToGame: "Kembali ke Permainan",
+          updateSuccess: "Profil berjaya dikemas kini",
+          updateFail: "Nama pengguna telah digunakan",
+          serverError: "Ralat pelayan",
+        },
+        zh: {
+          save: "保存",
+          backToGame: "返回游戏",
+          updateSuccess: "个人资料更新成功",
+          updateFail: "用户名已被使用",
+          serverError: "服务器错误",
+        },
+      };
+
+      function getLang() {
+        return sessionStorage.getItem("gameLang") || "en";
+      }
+
+      function t(key) {
+        return translations[getLang()][key] || key;
+      }
+
+      function applyLanguage() {
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          el.textContent = t(el.dataset.i18n);
+        });
+      }
+
+      applyLanguage();
+
+      /* =========================
+         Existing Logic
+      ========================= */
       const usernameInput = document.getElementById("usernameInput");
       const passwordInput = document.getElementById("passwordInput");
       const editUsername = document.getElementById("editUsername");
-      const editPassword = document.getElementById("editPassword");
       const saveBtn = document.getElementById("saveBtn");
+      const togglePassword = document.getElementById("togglePassword");
       const alertBox = document.getElementById("alertBox");
       const backBtn = document.getElementById("backBtn");
+      const currentAvatar = document.getElementById("currentAvatar");
+      const avatarOverlay = document.getElementById("avatarOverlay");
+      const avatarGrid = document.getElementById("avatarGrid");
+      const popSound = document.getElementById("popSound");
 
-      // Toggle editable
-      editUsername.addEventListener("click", () => {
-        usernameInput.classList.toggle("editable");
-        usernameInput.focus();
-      });
-      editPassword.addEventListener("click", () => {
-        passwordInput.classList.toggle("editable");
-        passwordInput.focus();
-      });
+      const avatars = [
+        "WhiteMale",
+        "BlackMale",
+        "AsianMale",
+        "NormalMale",
+        "WhiteFemale",
+        "BlackFemale",
+        "AsianFemale",
+        "IndianFemale",
+      ];
 
-      // Save changes
-      saveBtn.addEventListener("click", () => {
-        const newUsername = usernameInput.value.trim();
-        const newPassword = passwordInput.value.trim();
-
-        if (!newUsername || !newPassword) {
-          showAlert("Please fill in both fields", "error");
-          return;
-        }
-
-        // AJAX request to PHP
-        const formData = new FormData();
-        formData.append("username", newUsername);
-        formData.append("password", newPassword);
-
-        fetch("../Logic/edit_profile.php", {
-          method: "POST",
-          body: formData,
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.status === "ok") {
-              showAlert(data.message, "success");
-              usernameInput.classList.remove("editable");
-              passwordInput.classList.remove("editable");
-            } else if (data.status === "taken") {
-              showAlert(data.message, "error");
-            } else {
-              showAlert("An error occurred", "error");
-            }
-          })
-          .catch(() => showAlert("Server error", "error"));
-      });
-
-      function showAlert(message, type) {
-        alertBox.textContent = message;
-        alertBox.className = "alert " + type;
-        alertBox.style.display = "block";
-        setTimeout(() => (alertBox.style.display = "none"), 3000);
-      }
-
-      // Pre-fill username
-      const savedUsername = sessionStorage.getItem("player_name");
-      if (savedUsername) usernameInput.value = savedUsername;
-
-      // Back to Game functionality
-      backBtn.addEventListener("click", () => {
-        const previousPage =
-          sessionStorage.getItem("previousPage") || "/Pages/Homepage.html";
-        window.location.href = previousPage;
-      });
-
-      // Save current page as previousPage when navigating to edit profile
       if (!sessionStorage.getItem("previousPage")) {
         sessionStorage.setItem(
           "previousPage",
           document.referrer || "/Pages/Homepage.html"
         );
       }
+
+      let selectedPicture =
+        sessionStorage.getItem("profilepicture") || "NormalMale";
+      currentAvatar.src = `../ProfilePictures/${selectedPicture}.png`;
+      usernameInput.value = sessionStorage.getItem("player_name") || "Player";
+      passwordInput.value =
+        sessionStorage.getItem("player_password") || "password";
+
+      editUsername.onclick = () => {
+        usernameInput.classList.toggle("editable");
+        passwordInput.classList.toggle("editable");
+        usernameInput.focus();
+      };
+
+      togglePassword.onclick = () => {
+        passwordInput.type =
+          passwordInput.type === "password" ? "text" : "password";
+        togglePassword.classList.toggle("bi-eye-slash-fill");
+      };
+
+      currentAvatar.onclick = () => {
+        avatarGrid.innerHTML = "";
+        avatarOverlay.style.display = "flex";
+        avatars.forEach((a, i) => {
+          const img = document.createElement("img");
+          img.src = `../ProfilePictures/${a}.png`;
+          img.className = "avatar-choice";
+          img.onclick = () => {
+            selectedPicture = a;
+            sessionStorage.setItem("profilepicture", a);
+            currentAvatar.src = img.src;
+            avatarOverlay.style.display = "none";
+          };
+          avatarGrid.appendChild(img);
+          setTimeout(() => {
+            img.style.transform = "scale(1)";
+            popSound.currentTime = 0;
+            popSound.play();
+          }, i * 120);
+        });
+      };
+
+      saveBtn.onclick = () => {
+        const fd = new FormData();
+        fd.append("username", usernameInput.value.trim());
+        fd.append("password", passwordInput.value.trim());
+        fd.append("profilepicture", selectedPicture);
+
+        fetch("../Logic/edit_profile.php", { method: "POST", body: fd })
+          .then((r) => r.json())
+          .then((d) => {
+            showAlert(
+              d.status === "ok" ? t("updateSuccess") : t("updateFail"),
+              d.status === "ok" ? "success" : "error"
+            );
+          })
+          .catch(() => showAlert(t("serverError"), "error"));
+      };
+
+      function showAlert(msg, type) {
+        alertBox.textContent = msg;
+        alertBox.className = `alert ${type}`;
+        alertBox.style.display = "block";
+        setTimeout(() => (alertBox.style.display = "none"), 3000);
+      }
+
+      backBtn.onclick = () => {
+        window.location.href =
+          sessionStorage.getItem("previousPage") || "/Pages/Homepage.html";
+      };
     </script>
   </body>
 </html>
